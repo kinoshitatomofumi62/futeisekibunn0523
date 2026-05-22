@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>積分バトルRPG - INTEGRAL BATTLE RPG</title>
+  <!-- Google Fonts: Inter, Space Grotesk, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tailwind Configuration for custom fonts -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Retro styles, CRT scanline, and custom keyframes -->
+  <style type="text/css">
+    /* Custom CRT flicker & Scanline styling */
+    @keyframes crt-flicker {
+      0% { opacity: 0.98; }
+      50% { opacity: 1; }
+      100% { opacity: 0.99; }
+    }
+    
+    .crt-screen::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.23) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.04));
+      background-size: 100% 4px, 6px 100%;
+      z-index: 99;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    /* Keyframes for animations modeled from Framer Motion */
+    @keyframes breathing {
+      0%, 100% { transform: scale(0.96); }
+      50% { transform: scale(1.04); }
+    }
+    .animate-breathing {
+      animation: breathing 3.2s ease-in-out infinite;
+    }
+
+    @keyframes shake-hit {
+      0%, 100% { transform: translate(0, 0) scale(1); filter: brightness(1) drop-shadow(0 0 0 rgba(255,0,0,0)); }
+      10% { transform: translate(-12px, 0) scale(0.85); filter: brightness(1.35) saturate(2.5) drop-shadow(0 0 35px #f43f5e); }
+      30% { transform: translate(12px, 0) scale(1.2); filter: brightness(1.4) saturate(3) drop-shadow(0 0 45px #dc2626); }
+      50% { transform: translate(-10px, 0) scale(0.9); filter: brightness(1.3) saturate(2.2); }
+      70% { transform: translate(5px, 0) scale(1.05); }
+      90% { transform: translate(-2px, 0) scale(0.98); }
+    }
+    .animate-shake-hit {
+      animation: shake-hit 0.6s ease-out;
+    }
+
+    @keyframes attack-strike {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      20% { transform: translate(0, -20px) scale(1.15); }
+      60% { transform: translate(0, 15px) scale(0.95); }
+    }
+    .animate-attack-strike {
+      animation: attack-strike 0.4s ease-in-out;
+    }
+
+    @keyframes gameover-tilt {
+      0% { transform: rotate(0deg) scale(1); opacity: 1; }
+      100% { transform: rotate(5deg) scale(0.85); opacity: 0.8; }
+    }
+    .animate-gameover-tilt {
+      animation: gameover-tilt 1s forwards ease-in-out;
+    }
+
+    @keyframes slash-line-1 {
+      0% { width: 0px; opacity: 1; }
+      100% { width: 240px; opacity: 0; }
+    }
+    .animate-slash-line-1 {
+      animation: slash-line-1 0.44s forwards ease-out;
+    }
+
+    @keyframes seal-rotation {
+      0% { transform: scale(0.4) rotate(0deg); opacity: 0.8; }
+      100% { transform: scale(1.3) rotate(180deg); opacity: 0; }
+    }
+    .animate-seal-rotation {
+      animation: seal-rotation 0.62s forwards ease-out;
+    }
+
+    @keyframes dmg-float-text {
+      0% { opacity: 0; transform: translateY(15px) scale(0.8); }
+      25% { opacity: 1; transform: translateY(-10px) scale(1.3); }
+      100% { opacity: 0; transform: translateY(-50px) scale(1); }
+    }
+    .animate-dmg-float-text {
+      animation: dmg-float-text 0.85s forwards ease-out;
+    }
+
+    @keyframes crit-dmg-text {
+      0% { opacity: 0; transform: translateY(0); }
+      25% { opacity: 1; transform: translateY(-10px); }
+      100% { opacity: 0; transform: translateY(-30px); }
+    }
+    .animate-crit-dmg-text {
+      animation: crit-dmg-text 0.9s forwards ease-out;
+    }
+
+    /* Scrollbars custom styling */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(236,72,153,0.3);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(236,72,153,0.5);
+    }
+  </style>
+
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel Standalone CDN for on-the-fly execution -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Lucide Icons & Lucide React UMD CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide-react@latest"></script>
+
+  <!-- MathJax Config & Script -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        ignoreHtmlClass: 'tex2jax_ignore',
+        processHtmlClass: 'tex2jax_process'
+      },
+      startup: {
+        typeset: false
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+</head>
+<body class="bg-black text-white selection:bg-cyan-500/30 overflow-x-hidden min-h-screen">
+  <div id="root"></div>
+
+  <!-- React application with Babel translation compiler -->
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+    const { 
+      Heart, 
+      Zap, 
+      BookOpen, 
+      Award, 
+      RotateCcw, 
+      Play, 
+      Flame, 
+      Shield, 
+      Hourglass, 
+      AlertCircle, 
+      Sparkles, 
+      ChevronRight,
+      RefreshCw,
+      Trophy,
+      CheckCircle,
+      XCircle,
+      HelpCircle,
+      Gamepad2
+    } = LucideReact;
+
+    // --- MATH UTILITIES & INTEGRAL GENERATION ENGINE ---
+    const TA = [2, 3, 4, 5, -1, -2, -3, -4, -5];
+    const AA = [2, 3, 5];
+
+    function getRandomElement(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function getGCD(a, b) {
+      a = Math.abs(a);
+      b = Math.abs(b);
+      while (b) {
+        const temp = b;
+        b = a % b;
+        a = temp;
+      }
+      return a;
+    }
+
+    function ve(A, b) {
+      if (A === 0) return "0";
+      const B = A * b < 0 ? "-" : "";
+      let z = Math.abs(A);
+      let O = Math.abs(b);
+      const gcd = getGCD(z, O);
+      z /= gcd;
+      O /= gcd;
+      return O === 1 ? (z === 1 ? (B === "-" ? "-" : "") : B + z) : `${B}\\frac{${z}}{${O}}`;
+    }
+
+    function formatCoefficient(num, den, variableSuffix) {
+      if (num === 0) return "0";
+      const sign = num * den < 0 ? "-" : "";
+      let absNum = Math.abs(num);
+      let absDen = Math.abs(den);
+      const gcd = getGCD(absNum, absDen);
+      absNum /= gcd;
+      absDen /= gcd;
+
+      if (absDen === 1) {
+        if (absNum === 1 && variableSuffix !== "") {
+          return sign + variableSuffix;
+        }
+        return sign + absNum + variableSuffix;
+      } else {
+        if (absNum === 1 && variableSuffix !== "") {
+          return sign === "-" ? `-\\frac{${variableSuffix}}{${absDen}}` : `\\frac{${variableSuffix}}{${absDen}}`;
+        }
+        return `${sign}\\frac{${absNum}}{${absDen}}${variableSuffix}`;
+      }
+    }
+
+    function formatSimpleFraction(num, den) {
+      if (num === 0) return "0";
+      const sign = num * den < 0 ? "-" : "";
+      let absNum = Math.abs(num);
+      let absDen = Math.abs(den);
+      const gcd = getGCD(absNum, absDen);
+      absNum /= gcd;
+      absDen /= gcd;
+
+      if (absDen === 1) {
+        return `${sign}${absNum}`;
+      }
+      return `${sign}\\frac{${absNum}}{${absDen}}`;
+    }
+
+    function generateRA(type) {
+      const b = getRandomElement(TA); // Coefficient
+      const B = getRandomElement(AA); // Base [2,3,5]
+      let qTerm = "", cAns = "", d1 = "", d2 = "", d3 = "", d4 = "", d5 = "";
+      let category = "多項式・累乗根";
+      let explanation = "";
+
+      let powerOption = null;
+      if (type === 9) powerOption = getRandomElement([{ p: -3, q: 1 }, { p: -4, q: 1 }, { p: -5, q: 1 }]);
+      if (type === 10) powerOption = getRandomElement([{ p: 1, q: 3 }, { p: 1, q: 4 }, { p: 2, q: 3 }]);
+      if (type === 11) powerOption = { p: 3, q: 2 };
+      if (type === 12) powerOption = { p: -1, q: 2 };
+      if (type === 13) powerOption = { p: -4, q: 1 };
+      if (type === 15) powerOption = { p: 1, q: 2 };
+      if (type === 16) powerOption = { p: -1, q: 2 };
+
+      if (type === 1 || powerOption) {
+        const powerFormatter = (me, X, U, le) => {
+          if (me === 0) return "0";
+          const qe = me * X < 0 ? "-" : "";
+          let dt = Math.abs(me);
+          let Ge = Math.abs(X);
+          const gcd = getGCD(dt, Ge);
+          dt /= gcd;
+          Ge /= gcd;
+          let ye = "";
+          const isNeg = U < 0;
+          const absoluteU = Math.abs(U);
+
+          if (absoluteU === 0) {
+            ye = "";
+          } else if (le === 1) {
+            ye = absoluteU === 1 ? "x" : `x^{${absoluteU}}`;
+          } else if (le === 2) {
+            ye = absoluteU === 1 ? "\\sqrt{x}" : absoluteU === 3 ? "x\\sqrt{x}" : `x^{\\frac{${absoluteU}}{2}}`;
+          } else {
+            ye = absoluteU === 1 ? `x^{\\frac{1}{${le}}}` : `x^{\\frac{${absoluteU}}{${le}}}`;
+          }
+
+          if (isNeg) {
+            if (dt === 1 && Ge === 1) return `${qe}\\frac{1}{${ye}}`;
+            if (Ge === 1) return `${qe}\\frac{${dt}}{${ye}}`;
+            return `${qe}\\frac{${dt}}{${Ge}${ye}}`;
+          }
+          if (dt === 1 && Ge === 1) return ye === "" ? qe + "1" : qe === "-" ? "-" + ye : ye;
+          if (Ge === 1) return qe + dt + ye;
+          if (dt === 1 && ye !== "") return qe === "-" ? `-\\frac{${ye}}{${Ge}}` : `\\frac{${ye}}{${Ge}}`;
+          return `${qe}\\frac{${dt}}{${Ge}}${ye}`;
+        };
+
+        const power = powerOption || getRandomElement([
+          { p: -4, q: 1 }, { p: -3, q: 1 }, { p: -2, q: 1 }, 
+          { p: 2, q: 1 }, { p: 3, q: 1 }, { p: 4, q: 1 }, { p: 5, q: 1 }, 
+          { p: 1, q: 2 }, { p: 1, q: 3 }, { p: 3, q: 2 }, { p: 1, q: 4 }, 
+          { p: -1, q: 2 }, { p: -1, q: 3 }, { p: -2, q: 3 }
+        ]);
+        const N = power.p;
+        const F = power.q;
+        let Ne = b;
+        let oe = 1;
+        if (type === 16) {
+          Ne = 1;
+          oe = b;
+        }
+
+        qTerm = powerFormatter(Ne, oe, N, F);
+        cAns = powerFormatter(Ne * F, oe * (N + F), N + F, F);
+        d1 = powerFormatter(Ne * N, oe * F, N - F, F);
+        d2 = powerFormatter(Ne, oe, N + F, F);
+        d3 = powerFormatter(-Ne * F, oe * (N + F), N + F, F);
+        d4 = powerFormatter(Ne, oe, N, F);
+        d5 = powerFormatter(-Ne, oe, N + F, F);
+        category = (N < 0 || F > 1) ? "累乗根・有理数冪" : "多項式関数";
+
+        explanation = `冪乗の基本公式 \\(\\int x^n \\,dx = \\frac{x^{n+1}}{n+1} + C\\) (ただし \\(n \\neq -1\\)) を適用します。
+
+本問は \\(n = \\frac{${N}}{${F}}\\) です。
+指数の加算結果は \\(n + 1 = \\frac{${N + F}}{${F}}\\) となり、その逆数を掛け、累乗根の形に整理しています。`;
+      } else if (type === 2) {
+        category = "分数・対数関数";
+        qTerm = formatSimpleFraction(b, 1) + "\\frac{1}{x}";
+        cAns = formatCoefficient(b, 1, "\\log|x|");
+        d1 = formatCoefficient(b, 1, "\\log x");
+        d2 = formatCoefficient(-b, 1, "\\frac{1}{x^2}");
+        d3 = formatCoefficient(b, 2, "x^2");
+        d4 = formatCoefficient(-b, 1, "\\log|x|");
+        d5 = formatCoefficient(b, 1, "\\frac{1}{x^2}");
+        explanation = `\\(\\int \\frac{1}{x} \\,dx = \\log|x| + C\\) の対数公式を直接適用します。
+積分結果の対数の真数部分には必ず **絶対値記号** \\(|x|\\) を付与します。`;
+      } else if (type === 3) {
+        category = "三角関数";
+        qTerm = formatCoefficient(b, 1, "\\sin x");
+        cAns = formatCoefficient(-b, 1, "\\cos x");
+        d1 = formatCoefficient(b, 1, "\\cos x");
+        d2 = formatCoefficient(-b, 1, "\\sin x");
+        d3 = formatCoefficient(b, 1, "\\sin x");
+        d4 = formatCoefficient(b, 2, "\\sin^2 x");
+        d5 = formatCoefficient(-b, 2, "\\cos^2 x");
+        explanation = `三角関数の基本公式 \\(\\int \\sin x \\,dx = -\\cos x + C\\) を使用します。
+微分の時に \\((\\cos x)' = -\\sin x\\) となっていた「マイナスの符号」を逆に積分に適用するため、符号の変化に細心の注意を払いましょう。`;
+      } else if (type === 4) {
+        category = "三角関数";
+        qTerm = formatCoefficient(b, 1, "\\cos x");
+        cAns = formatCoefficient(b, 1, "\\sin x");
+        d1 = formatCoefficient(-b, 1, "\\sin x");
+        d2 = formatCoefficient(b, 1, "\\cos x");
+        d3 = formatCoefficient(-b, 1, "\\cos x");
+        d4 = formatCoefficient(-b, 2, "\\cos^2 x");
+        d5 = formatCoefficient(b, 2, "\\sin^2 x");
+        explanation = `基本公式 \\(\\int \\cos x \\,dx = \\sin x + C\\) を用います。
+\\(\\sin x\\) からの微分では \\(\\cos x\\) の符号は正のまま変化しません。`;
+      } else if (type === 5) {
+        category = "三角関数";
+        qTerm = formatSimpleFraction(b, 1) + "\\frac{1}{\\cos^2 x}";
+        cAns = formatCoefficient(b, 1, "\\tan x");
+        d1 = formatCoefficient(-b, 1, "\\tan x");
+        d2 = formatSimpleFraction(b, 1) + "\\frac{1}{\\sin^2 x}";
+        d3 = formatSimpleFraction(-b, 1) + "\\frac{1}{\\tan x}";
+        d4 = formatCoefficient(b, 1, "\\frac{1}{\\tan x}");
+        d5 = formatCoefficient(-b, 1, "\\frac{1}{\\tan x}");
+        explanation = `\\(\\tan x\\) の微分公式 \\((\\tan x)' = \\frac{1}{\\cos^2 x}\\) より、その逆の積分として
+\\(\\int \\frac{1}{\\cos^2 x} \\,dx = \\tan x + C\\) が導かれます。`;
+      } else if (type === 6) {
+        category = "三角関数";
+        qTerm = formatSimpleFraction(b, 1) + "\\frac{1}{\\sin^2 x}";
+        cAns = formatCoefficient(-b, 1, "\\frac{1}{\\tan x}");
+        d1 = formatCoefficient(b, 1, "\\frac{1}{\\tan x}");
+        d2 = formatCoefficient(-b, 1, "\\tan x");
+        d3 = formatCoefficient(b, 1, "\\tan x");
+        d4 = formatSimpleFraction(b, 1) + "\\frac{1}{\\cos^2 x}";
+        d5 = formatSimpleFraction(-b, 1) + "\\frac{1}{\\sin^2 x}";
+        explanation = `コタンジェントの微分公式 \\((\\frac{1}{\\tan x})' = -\\frac{1}{\\sin^2 x}\\) を逆算します。
+\\(\\int \\frac{1}{\\sin^2 x} \\,dx = -\\frac{1}{\\tan x} + C\\) と、マイナス記号が付くことを忘れないようにしましょう。`;
+      } else if (type === 7) {
+        category = "指数関数";
+        qTerm = formatCoefficient(b, 1, "e^x");
+        cAns = formatCoefficient(b, 1, "e^x");
+        d1 = formatCoefficient(b, 1, "x e^{x-1}");
+        d2 = formatCoefficient(-b, 1, "e^x");
+        d3 = formatCoefficient(b, 2, "e^{2x}");
+        d4 = formatCoefficient(b, 1, "e^{x+1}");
+        d5 = formatCoefficient(-b, 1, "x e^x");
+        explanation = `自然対数の底 \\(e^x\\) は積分しても微分しても自身の形を変えません。
+\\(\\int e^x \\,dx = e^x + C\\) を用いる最もシンプルなパターンです。`;
+      } else if (type === 8) {
+        category = "指数関数";
+        const dotStr = b === 1 ? "" : b === -1 ? "-" : b + "\\cdot ";
+        const coeffAbs = Math.abs(b) === 1 ? "" : Math.abs(b) + "\\cdot ";
+        const negSign = b < 0 ? "-" : "";
+        const normalFormat = b === 1 ? "" : b === -1 ? "-" : b + "\\cdot ";
+
+        qTerm = `${dotStr}${B}^x`;
+        cAns = `${negSign}\\frac{${coeffAbs}${B}^x}{\\log ${B}}`;
+        d1 = `${normalFormat}${B}^x \\log ${B}`;
+        d2 = `${normalFormat}${B}^x`;
+        d3 = `${negSign === "-" ? "" : "-"}\\frac{${coeffAbs}${B}^x}{\\log ${B}}`;
+        d4 = `${normalFormat}x ${B}^{x-1}`;
+        d5 = `${negSign}\\frac{${coeffAbs}${B}^{x+1}}{x+1}`;
+        explanation = `一般の指数関数 \\(a^x\\) (底が \\(e\\) 以外の数、本問では \\(a = ${B}\\)) の積分を行います。
+微分すると \\(a^x \\log a\\) ですが、積分では分母に \\(\\log a\\) が現れます。
+\\(\\int a^x \\,dx = \\frac{a^x}{\\log a} + C\\) の定数倍です。`;
+      } else if (type === 14) {
+        category = "指数関数";
+        qTerm = formatCoefficient(b, 1, "e^{x+2}");
+        cAns = formatCoefficient(b, 1, "e^{x+2}");
+        d1 = formatCoefficient(b, 1, "e^{x+3}");
+        d2 = formatCoefficient(-b, 1, "e^{x+2}");
+        d3 = formatCoefficient(b, 2, "e^{x+2}");
+        d4 = formatCoefficient(b, 1, "x e^{x+2}");
+        d5 = formatCoefficient(b, 1, "e^{x+1}");
+        explanation = `\\(e^{x+c}\\) 型の積分です。指数部分の一次の係数が1なので、通常の \\(e^x\\) の積分公式と同様にそのまま自身が原始関数となります。`;
+      }
+
+      return { qTerm, cAns, d1, d2, d3, d4, d5, category, explanation };
+    }
+
+    function generateDA() {
+      const coeffGrid = [1, 2, -1, -2, 3, -3, 0.5, -0.5];
+      const bVal = getRandomElement(coeffGrid);
+      const BVal = getRandomElement(coeffGrid);
+
+      const z = bVal === 0.5 ? 1 : bVal === -0.5 ? -1 : bVal;
+      const O = bVal === 0.5 || bVal === -0.5 ? 2 : 1;
+      const dol = BVal === 0.5 ? 1 : BVal === -0.5 ? -1 : BVal;
+      const be = BVal === 0.5 || BVal === -0.5 ? 2 : 1;
+
+      let xTerm = "";
+      if (O === 2) {
+        xTerm = z === 1 ? "\\frac{x}{2}" : "-\\frac{x}{2}";
+      } else {
+        xTerm = z === 1 ? "x" : z === -1 ? "-x" : z + "x";
+      }
+
+      if (be === 2) {
+        xTerm += dol === 1 ? "+\\frac{1}{2}" : "-\\frac{1}{2}";
+      } else {
+        xTerm += dol > 0 ? "+" + dol : (dol < 0 ? dol : "");
+      }
+
+      const exprRaw = xTerm;
+      const parenthesized = "\\left(" + xTerm + "\\right)";
+      const selectedType = getRandomElement([1, 2, 3, 4, 5, 7]);
+      let qTerm = "", cAns = "", d1 = "", d2 = "", d3 = "", d4 = "", d5 = "";
+      let typeName = "";
+      let baseExpl = "";
+
+      function formatTerms(coeff, base) {
+        if (coeff === "0") return "0";
+        if (coeff === "" && base !== "") return base;
+        if (coeff === "-" && base !== "") return "-" + base;
+        if (coeff === "" && base === "") return "1";
+        if (coeff === "-" && base === "") return "-1";
+        return coeff + base;
+      }
+
+      if (selectedType === 1) {
+        typeName = "多項式合成積分";
+        const power = getRandomElement([2, 3]);
+        const initCoeff = getRandomElement([1, -1, 2, -2]);
+        qTerm = formatTerms(ve(initCoeff, 1), parenthesized + "^{" + power + "}");
+        const divisor = ve(initCoeff * O, z * (power + 1));
+        cAns = formatTerms(divisor, parenthesized + "^{" + (power + 1) + "}");
+        d1 = formatTerms(ve(initCoeff, power + 1), parenthesized + "^{" + (power + 1) + "}");
+        d2 = formatTerms(ve(initCoeff * z, O * (power + 1)), parenthesized + "^{" + (power + 1) + "}");
+        d3 = formatTerms(divisor, parenthesized + "^{" + power + "}");
+        d4 = formatTerms(ve(-initCoeff * O, z * (power + 1)), parenthesized + "^{" + (power + 1) + "}");
+        d5 = formatTerms(ve(initCoeff * O, z * (power + 2)), parenthesized + "^{" + (power + 2) + "}");
+        baseExpl = `全体が \\(u^n\\) の形をした累乗関数の合成です。通常の積分を行った後、一次式 \\(${exprRaw}\\) の微分である係数 \\(${ve(z, O)}\\) の逆数を掛け算します。`;
+      } else if (selectedType === 2) {
+        typeName = "対数合成積分";
+        const initCoeff = getRandomElement([1, -1, 2, -2]);
+        if (initCoeff === 1) qTerm = "\\frac{1}{" + parenthesized + "}";
+        else if (initCoeff === -1) qTerm = "-\\frac{1}{" + parenthesized + "}";
+        else qTerm = formatTerms(ve(initCoeff, 1), "\\frac{1}{" + parenthesized + "}");
+
+        const outerFactor = ve(initCoeff * O, z);
+        cAns = formatTerms(outerFactor, "\\log|" + exprRaw + "|");
+        d1 = formatTerms(ve(initCoeff, 1), "\\log|" + exprRaw + "|");
+        d2 = formatTerms(ve(initCoeff * z, O), "\\log|" + exprRaw + "|");
+        d3 = formatTerms(ve(-initCoeff * O, z), "\\log|" + exprRaw + "|");
+        d4 = formatTerms(ve(-initCoeff * O, z), "\\frac{1}{" + parenthesized + "}");
+        d5 = formatTerms(ve(initCoeff * O, z), "\\frac{1}{" + parenthesized + "}");
+        baseExpl = `\\(\\int \\frac{1}{ax+b} \\,dx = \\frac{1}{a} \\log|ax+b| + C\\) の定数を掛け合わせる1次置換積分です。`;
+      } else if (selectedType === 3) {
+        typeName = "三角合成積分 (cos)";
+        const initCoeff = getRandomElement([1, -1, 2, -2]);
+        qTerm = formatTerms(ve(initCoeff, 1), "\\cos" + parenthesized);
+        const outerFactor = ve(initCoeff * O, z);
+        cAns = formatTerms(outerFactor, "\\sin" + parenthesized);
+        d1 = formatTerms(ve(-initCoeff * O, z), "\\sin" + parenthesized);
+        d2 = formatTerms(outerFactor, "\\cos" + parenthesized);
+        d3 = formatTerms(ve(-initCoeff * O, z), "\\cos" + parenthesized);
+        d4 = formatTerms(ve(initCoeff, 1), "\\sin" + parenthesized);
+        d5 = formatTerms(ve(initCoeff * z, O), "\\sin" + parenthesized);
+        baseExpl = `\\(\\int \\cos(ax+b) \\,dx = \\frac{1}{a} \\sin(ax+b) + C\\) の合成積分です。`;
+      } else if (selectedType === 4) {
+        typeName = "三角合成積分 (sin)";
+        const initCoeff = getRandomElement([1, -1, 2, -2]);
+        qTerm = formatTerms(ve(initCoeff, 1), "\\sin" + parenthesized);
+        const outerFactor = ve(-initCoeff * O, z);
+        cAns = formatTerms(outerFactor, "\\cos" + parenthesized);
+        d1 = formatTerms(ve(initCoeff * O, z), "\\cos" + parenthesized);
+        d2 = formatTerms(outerFactor, "\\sin" + parenthesized);
+        d3 = formatTerms(ve(initCoeff * O, z), "\\sin" + parenthesized);
+        d4 = formatTerms(ve(-initCoeff, 1), "\\cos" + parenthesized);
+        d5 = formatTerms(ve(-initCoeff * z, O), "\\cos" + parenthesized);
+        baseExpl = `\\(\\int \\sin(ax+b) \\,dx = -\\frac{1}{a} \\cos(ax+b) + C\\) となり、マイナス符号の適用と係数調整が必要です。`;
+      } else if (selectedType === 5) {
+        typeName = "三角合成積分 (tan)";
+        const initCoeff = getRandomElement([1, -1, 2, -2]);
+        if (initCoeff === 1) qTerm = "\\frac{1}{\\cos^2" + parenthesized + "}";
+        else if (initCoeff === -1) qTerm = "-\\frac{1}{\\cos^2" + parenthesized + "}";
+        else qTerm = formatTerms(ve(initCoeff, 1), "\\frac{1}{\\cos^2" + parenthesized + "}");
+
+        const outerFactor = ve(initCoeff * O, z);
+        cAns = formatTerms(outerFactor, "\\tan" + parenthesized);
+        d1 = formatTerms(ve(-initCoeff * O, z), "\\tan" + parenthesized);
+        d2 = formatTerms(ve(initCoeff, 1), "\\tan" + parenthesized);
+        d3 = formatTerms(outerFactor, "\\frac{1}{\\tan" + parenthesized + "}");
+        d4 = formatTerms(ve(-initCoeff * O, z), "\\frac{1}{\\tan" + parenthesized + "}");
+        d5 = formatTerms(ve(initCoeff * z, O), "\\tan" + parenthesized);
+        baseExpl = `\\(\\int \\frac{1}{\\cos^2(ax+b)} \\,dx = \\frac{1}{a} \\tan(ax+b) + C\\) の公式を適用します。`;
+      } else if (selectedType === 7) {
+        typeName = "指数合成積分 (e)";
+        const initCoeff = getRandomElement([1, -1, 2, -2]);
+        qTerm = formatTerms(ve(initCoeff, 1), "e^{" + exprRaw + "}");
+        const outerFactor = ve(initCoeff * O, z);
+        cAns = formatTerms(outerFactor, "e^{" + exprRaw + "}");
+        d1 = formatTerms(ve(-initCoeff * O, z), "e^{" + exprRaw + "}");
+        d2 = formatTerms(ve(initCoeff, 1), "e^{" + exprRaw + "}");
+        d3 = formatTerms(ve(initCoeff * z, O), "e^{" + exprRaw + "}");
+        d4 = formatTerms(outerFactor, parenthesized + "e^{" + exprRaw + "-1}");
+        d5 = formatTerms(ve(initCoeff, 1), parenthesized + "e^{" + exprRaw + "}");
+        baseExpl = `\\(\\int e^{ax+b} \\,dx = \\frac{1}{a} e^{ax+b} + C\\) をベースに係数計算を行います。`;
+      }
+
+      const explanation = `${typeName} (置換積分法)
+1次式 \\(ax+b\\) が合成されている関数の積分では、
+外側の基本的な積分結果 \\(F(x)\\) を求めた上で、**中身の1次式の \\(x\\) の係数の逆数である \\(\\frac{1}{a}\\)** を全体に掛け算します。
+本問の1次式中身は \\(ax+b = ${exprRaw}\\) です。
+よって \\(x\\) の係数である \\(a = ${ve(z, O)}\\) の逆数 \\(\\frac{1}{a} = ${ve(O, z)}\\) を最終型に掛け算するルールになります。
+
+${baseExpl}`;
+
+      return { qTerm, cAns, d1, d2, d3, d4, d5, category: "1次合成（置換積分）", explanation };
+    }
+
+    function joinFormulaAnswers(ansArray) {
+      if (!ansArray || ansArray.length === 0) return "";
+      let out = ansArray[0];
+      for (let i = 1; i < ansArray.length; i++) {
+        if (ansArray[i].startsWith("-")) {
+          out += " " + ansArray[i];
+        } else {
+          out += " + " + ansArray[i];
+        }
+      }
+      return out;
+    }
+
+    function buildQuizItem(forceComposite, chosenType = null) {
+      const parts = [];
+      if (forceComposite) {
+        parts.push(generateDA());
+      } else {
+        parts.push(generateRA(chosenType !== null ? chosenType : Math.floor(Math.random() * 16) + 1));
+      }
+
+      const qText = `\\int ` + (forceComposite || parts[0].qTerm.includes("+") || parts[0].qTerm.substring(1).includes("-") ? `\\left( ${parts[0].qTerm} \\right)` : parts[0].qTerm) + ` \\,dx`;
+      const cAnsStr = joinFormulaAnswers(parts.map(p => p.cAns)) + " + C";
+
+      let candidates = [];
+      if (parts.length === 1) {
+        const single = parts[0];
+        candidates = [
+          single.d1 + " + C",
+          single.d2 + " + C",
+          single.d3 + " + C",
+          single.d4 + " + C",
+          single.d5 + " + C",
+          cAnsStr.replace(" + C", "")
+        ].filter(Boolean);
+      }
+
+      // Deduplicate and randomize candidates
+      const uniqueCandidates = Array.from(new Set(candidates)).sort(() => Math.random() - 0.5);
+
+      const selectedChoices = [cAnsStr];
+      for (const choice of uniqueCandidates) {
+        if (choice !== cAnsStr && selectedChoices.length < 4) {
+          selectedChoices.push(choice);
+        }
+      }
+
+      while (selectedChoices.length < 4) {
+        selectedChoices.push(cAnsStr + ` + ${selectedChoices.length}`);
+      }
+
+      const shuffledChoices = selectedChoices.sort(() => Math.random() - 0.5);
+
+      return { q: qText, cAns: cAnsStr, choices: shuffledChoices, original: parts[0] };
+    }
+
+
+    // --- CUSTOM MONSTER ASSET URLS ---
+    const Qo = {
+      NORMAL: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag0.png",
+      HIT: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag2.png",
+      ATTACK: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag1.png",
+      DEFEAT: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag3.png",
+      WIN_MISS: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag4.png",
+      WIN_PERFECT: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag5.png"
+    };
+
+
+    // --- PROCEDURAL SVG NEON MONSTERS (NO CDN REQUIRED FALLBACK) ---
+    function NeonMonster({ type, mood, gameState }) {
+      const getColors = () => {
+        if (gameState === "CLEAR") {
+          return { outline: "#718096", body: "rgba(113, 128, 150, 0.15)", neon: "rgba(113, 128, 150, 0.4)", core: "#cbd5e0" };
+        }
+        switch (type) {
+          case "slime":
+            return { outline: "#00ffff", body: "rgba(0, 255, 255, 0.15)", neon: "rgba(0, 255, 255, 0.8)", core: "#ffffff" };
+          case "triangle":
+            return { outline: "#ff00ff", body: "rgba(255, 0, 255, 0.15)", neon: "rgba(255, 0, 255, 0.8)", core: "#ffbbee" };
+          case "phantom":
+            return { outline: "#00ff00", body: "rgba(0, 255, 0, 0.12)", neon: "rgba(0, 255, 0, 0.8)", core: "#ddffdd" };
+          case "golem":
+            return { outline: "#ffaa00", body: "rgba(255, 170, 0, 0.18)", neon: "rgba(255, 170, 0, 0.8)", core: "#fff0cc" };
+          case "chimera":
+            return { outline: "#ff3333", body: "rgba(255, 51, 51, 0.2)", neon: "rgba(255, 51, 51, 0.9)", core: "#ffffff" };
+          default:
+            return { outline: "#33bbff", body: "rgba(51, 187, 255, 0.15)", neon: "rgba(51, 187, 255, 0.8)", core: "#ffffff" };
+        }
+      };
+
+      const colors = getColors();
+
+      let animationClass = "animate-breathing";
+      if (mood === "HIT") {
+        animationClass = "animate-shake-hit";
+      } else if (mood === "ATTACK") {
+        animationClass = "animate-attack-strike";
+      } else if (gameState === "GAMEOVER") {
+        animationClass = "animate-gameover-tilt";
+      }
+
+      return (
+        <div className={`relative flex items-center justify-center p-4 origin-center ${animationClass}`}>
+          <svg
+            width="220"
+            height="220"
+            viewBox="0 0 100 100"
+            className="drop-shadow-[0_0_15px_var(--neon-glow)]"
+            style={{ "--neon-glow": colors.outline }}
+          >
+            <defs>
+              <linearGradient id={`grad-${type}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={colors.outline} />
+                <stop offset="100%" stopColor="#000" />
+              </linearGradient>
+            </defs>
+
+            {/* Slime Monster */}
+            {type === "slime" && (
+              <g>
+                <path
+                  d="M 20 80 Q 20 50 50 20 Q 80 50 80 80 Q 50 90 20 80 Z"
+                  fill={colors.body}
+                  stroke={colors.outline}
+                  strokeWidth="2.5"
+                />
+                <text x="35" y="65" fill={colors.outline} fontSize="14" fontWeight="bold" fontFamily="monospace">∫xⁿ</text>
+                <circle cx="40" cy="45" r="4" fill={colors.core} stroke={colors.outline} strokeWidth="1" />
+                <circle cx="60" cy="45" r="4" fill={colors.core} stroke={colors.outline} strokeWidth="1" />
+                <circle cx="41" cy="45" r="1.5" fill="black" />
+                <circle cx="61" cy="45" r="1.5" fill="black" />
+                <path d="M 45 53 Q 50 58 55 53" fill="none" stroke={colors.outline} strokeWidth="2" />
+              </g>
+            )}
+
+            {/* Triangle Triggered Beast */}
+            {type === "triangle" && (
+              <g>
+                <polygon
+                  points="50,15 85,75 15,75"
+                  fill={colors.body}
+                  stroke={colors.outline}
+                  strokeWidth="2.5"
+                />
+                <path d="M 50 20 L 70 55 L 30 55 Z" fill="none" stroke={colors.outline} strokeWidth="1" strokeDasharray="2,2" />
+                <text x="38" y="70" fill={colors.outline} fontSize="12" fontWeight="bold" fontFamily="monospace">sinθ</text>
+                <circle cx="50" cy="46" r="12" fill="none" stroke={colors.outline} strokeWidth="1.5" />
+                <circle cx="50" cy="46" r="6" fill={colors.core} stroke={colors.outline} strokeWidth="1" />
+                <ellipse cx="50" cy="46" rx="2" ry="4" fill="black" />
+              </g>
+            )}
+
+            {/* Logarithmic Spectral Phantom */}
+            {type === "phantom" && (
+              <g>
+                <path
+                  d="M 25 75 Q 20 50 40 20 Q 60 15 75 40 Q 85 65 75 80 Q 65 70 50 80 Q 35 70 25 75 Z"
+                  fill={colors.body}
+                  stroke={colors.outline}
+                  strokeWidth="2.5"
+                />
+                <path d="M 50 42 A 8 8 0 0 1 58 50 A 10 10 0 0 1 48 60 A 12 12 0 0 1 36 48 A 14 14 0 0 1 50 34" fill="none" stroke={colors.outline} strokeWidth="1.5" strokeDasharray="2,1" />
+                <path d="M 33 35 L 43 40" stroke={colors.outline} strokeWidth="2.5" strokeLinecap="round" />
+                <path d="M 67 35 L 57 40" stroke={colors.outline} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="38" cy="38" r="2.5" fill={colors.core} />
+                <circle cx="62" cy="38" r="2.5" fill={colors.core} />
+                <ellipse cx="50" cy="48" rx="7" ry="3" fill="none" stroke={colors.outline} strokeWidth="2" />
+              </g>
+            )}
+
+            {/* Boss Golem */}
+            {type === "golem" && (
+              <g>
+                <rect x="25" y="25" width="50" height="50" rx="3" fill={colors.body} stroke={colors.outline} strokeWidth="3" />
+                <rect x="35" y="15" width="30" height="10" rx="2" fill="none" stroke={colors.outline} strokeWidth="2" />
+                <circle cx="20" cy="45" r="10" fill={colors.body} stroke={colors.outline} strokeWidth="2" />
+                <circle cx="80" cy="45" r="10" fill={colors.body} stroke={colors.outline} strokeWidth="2" />
+                <text x="43" y="55" fill={colors.outline} fontSize="18" fontWeight="bold">eˣ</text>
+                <line x1="30" y1="35" x2="45" y2="35" stroke={colors.core} strokeWidth="3" strokeLinecap="round" />
+                <line x1="70" y1="35" x2="55" y2="35" stroke={colors.core} strokeWidth="3" strokeLinecap="round" />
+                <line x1="50" y1="63" x2="50" y2="70" stroke={colors.outline} strokeWidth="2" />
+              </g>
+            )}
+
+            {/* Cyber-Euler Chimera */}
+            {type === "chimera" && (
+              <g>
+                <path d="M 50 15 Q 85 50 50 85 Q 15 50 50 15 Z" fill={colors.body} stroke={colors.outline} strokeWidth="4" />
+                <path d="M 25 35 Q 5 15 15 60 Q 25 50 35 45 Z" fill="rgba(255, 51, 51, 0.15)" stroke={colors.outline} strokeWidth="2.5" />
+                <path d="M 75 35 Q 95 15 85 60 Q 75 50 65 45 Z" fill="rgba(255, 51, 51, 0.15)" stroke={colors.outline} strokeWidth="2.5" />
+                <circle cx="15" cy="60" r="3" fill="#ffffff" stroke={colors.outline} strokeWidth="1" />
+                <circle cx="85" cy="60" r="3" fill="#ffffff" stroke={colors.outline} strokeWidth="1" />
+                <circle cx="50" cy="50" r="16" fill="black" stroke={colors.outline} strokeWidth="2" />
+                <text x="43" y="57" fill={colors.core} fontSize="20" fontWeight="extrabold">Σ</text>
+                <path d="M 40 22 Q 40 5 30 10" fill="none" stroke={colors.outline} strokeWidth="3" />
+                <path d="M 60 22 Q 60 5 70 10" fill="none" stroke={colors.outline} strokeWidth="3" />
+                <polygon points="41,36 49,39 40,41" fill={colors.core} />
+                <polygon points="59,36 51,39 60,41" fill={colors.core} />
+              </g>
+            )}
+
+            {/* Practice Target Dummy */}
+            {type === "practice" && (
+              <g>
+                <circle cx="50" cy="50" r="35" fill={colors.body} stroke={colors.outline} strokeWidth="2.5" />
+                <circle cx="50" cy="50" r="25" fill="none" stroke={colors.outline} strokeWidth="1" strokeDasharray="4,2" />
+                <circle cx="50" cy="50" r="12" fill="rgba(51, 187, 255, 0.4)" stroke={colors.outline} strokeWidth="3" />
+                <line x1="10" y1="50" x2="90" y2="50" stroke={colors.outline} strokeWidth="1" />
+                <line x1="50" y1="10" x2="50" y2="90" stroke={colors.outline} strokeWidth="1" />
+                <text x="44" y="54" fill={colors.core} fontSize="14" fontWeight="bold">?</text>
+              </g>
+            )}
+          </svg>
+        </div>
+      );
+    }
+
+
+    // --- HYBRID INTERACTIVE ADAPTIVE MONSTER ---
+    function AdaptiveMonster({ type, mood, gameState, ansWrongLength = 0 }) {
+      const [imgFailed, setImgFailed] = useState(false);
+
+      useEffect(() => {
+        setImgFailed(false);
+      }, [type, gameState, mood]);
+
+      let imgSrc = "";
+      if (gameState === "GAMEOVER") {
+        imgSrc = Qo.DEFEAT;
+      } else if (gameState === "CLEAR") {
+        imgSrc = ansWrongLength === 0 ? Qo.WIN_PERFECT : Qo.WIN_MISS;
+      } else if (["START", "CHAR_SELECT", "MODE_SELECT", "PRACTICE_SELECT"].includes(gameState)) {
+        imgSrc = Qo.NORMAL;
+      } else {
+        if (mood === "HIT") {
+          imgSrc = Qo.HIT;
+        } else if (mood === "ATTACK") {
+          imgSrc = Qo.ATTACK;
+        } else {
+          imgSrc = Qo.NORMAL;
+        }
+      }
+
+      if (imgFailed) {
+        return (
+          <div className="scale-[0.95] origin-center flex items-center justify-center p-0.5">
+            <NeonMonster type={type} mood={mood} gameState={gameState} />
+          </div>
+        );
+      }
+
+      let animationClass = "animate-breathing";
+      if (gameState === "PLAYING") {
+        if (mood === "HIT") {
+          animationClass = "animate-shake-hit";
+        } else if (mood === "ATTACK") {
+          animationClass = "animate-attack-strike";
+        }
+      } else if (gameState === "GAMEOVER") {
+        animationClass = "animate-gameover-tilt";
+      }
+
+      const heightClass = ["CLEAR", "GAMEOVER"].includes(gameState)
+        ? "max-h-[160px] sm:max-h-[220px] w-auto max-w-full"
+        : gameState === "START"
+        ? "max-h-[135px] sm:max-h-[185px] w-auto"
+        : "max-h-[115px] sm:max-h-[155px] w-auto";
+
+      return (
+        <div className={`relative flex items-center justify-center p-1 origin-center scale-[0.95] ${animationClass}`}>
+          <img
+            src={imgSrc}
+            alt="Adaptive Monster"
+            onError={() => {
+              console.warn("Proxy or offline. Reverting gracefully to procedural neon vector art!");
+              setImgFailed(true);
+            }}
+            referrerPolicy="no-referrer"
+            className={`object-contain pointer-events-none select-none ${heightClass}`}
+          />
+        </div>
+      );
+    }
+
+
+    // --- MATHJAX TYPE-SAFE COMPONENT ---
+    function MathJaxFormula({ math }) {
+      const nodeRef = useRef(null);
+
+      useEffect(() => {
+        const w = window;
+        if (w.MathJax && w.MathJax.typesetPromise && nodeRef.current) {
+          try {
+            w.MathJax.typesetClear([nodeRef.current]);
+            nodeRef.current.innerHTML = `\\(${math}\\)`;
+            w.MathJax.typesetPromise([nodeRef.current]).catch((err) => {
+              console.error("MathJax typeset failed", err);
+            });
+          } catch (e) {
+            console.error("MathJax operation failed gracefully:", e);
+          }
+        } else if (nodeRef.current) {
+          nodeRef.current.innerHTML = `\\(${math}\\)`;
+        }
+      }, [math]);
+
+      return (
+        <span 
+          ref={nodeRef} 
+          className="mathjax-container font-sans overflow-x-auto max-w-full text-center py-1 inline-block"
+        />
+      );
+    }
+
+    function MathJaxExplanation({ text }) {
+      const nodeRef = useRef(null);
+
+      useEffect(() => {
+        const w = window;
+        if (w.MathJax && w.MathJax.typesetPromise && nodeRef.current) {
+          try {
+            w.MathJax.typesetClear([nodeRef.current]);
+            nodeRef.current.innerHTML = text;
+            w.MathJax.typesetPromise([nodeRef.current]).catch((err) => {
+              console.error("MathJax explanation typeset failed", err);
+            });
+          } catch (e) {
+            console.error("MathJax explanation operation failed gracefully:", e);
+          }
+        } else if (nodeRef.current) {
+          nodeRef.current.innerHTML = text;
+        }
+      }, [text]);
+
+      return (
+        <div 
+          ref={nodeRef} 
+          className="mathjax-explanation text-xs sm:text-[13px] leading-relaxed text-gray-200 mt-1 whitespace-pre-wrap select-text selection:bg-pink-500/30 text-left"
+        />
+      );
+    }
+
+
+    // --- MAIN GAME DEFINITIONS ---
+    const PRACTICE_CATEGORIES = [
+      { id: "poly", name: "Polynomial", jpName: "冪関数・多項式", types: [1, 9, 13], color: "from-blue-600 to-cyan-500", bossType: "slime" },
+      { id: "trig", name: "Trigonometric", jpName: "三角関数全般", types: [3, 4, 5, 6], color: "from-purple-600 to-pink-500", bossType: "triangle" },
+      { id: "exp", name: "Exponential & Log", jpName: "指数・対数関数", types: [2, 7, 8, 14], color: "from-green-600 to-emerald-500", bossType: "phantom" },
+      { id: "composite", name: "Composite Linear", jpName: "1次合成（置換積分）", types: [-1], color: "from-amber-600 to-orange-500", bossType: "golem" }
+    ];
+
+    const ALL_ACHIEVEMENTS = [
+      { name: "積分マスター", eng: "New High Score", desc: "ハイスコアを更新する", icon: "🏆", hint: "ハイスコア更新" },
+      { name: "無傷 of 守護者", eng: "Perfect Health Clear", desc: "HP満タンで物語クリア", icon: "💎", hint: "HP3でクエストクリア" },
+      { name: "アインシュタイン級", eng: "High Score Pro", desc: "スコア1500点以上でクリア", icon: "🎓", hint: "1500点以上獲得してクリア" },
+      { name: "連撃 of 達人", eng: "5 Combo Mastery", desc: "5連続で正解（5コンボ達成）", icon: "⚡", hint: "ゲーム中に5回連続正解" }
+    ];
+
+
+    // --- MAIN APP COMPONENT ---
+    function App() {
+      const [gameState, setGameState] = useState("START");
+      
+      // Player Stats
+      const [hp, setHp] = useState(3);
+      const [score, setScore] = useState(0);
+      const [combo, setCombo] = useState(0);
+      const [highScore, setHighScore] = useState(() => {
+        const saved = localStorage.getItem("INTEGRAL_RPG_HIGHSCORE");
+        return saved ? parseInt(saved, 10) : 0;
+      });
+      const [unlockedAchievements, setUnlockedAchievements] = useState(() => {
+        const saved = localStorage.getItem("INTEGRAL_RPG_ACHIEVEMENTS");
+        return saved ? JSON.parse(saved) : [];
+      });
+
+      // Target Quiz Setup
+      const [gameMode, setGameMode] = useState("STORY");
+      const [pracCategory, setPracCategory] = useState(PRACTICE_CATEGORIES[0]);
+      const [quizzes, setQuizzes] = useState([]);
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [timeRemaining, setTimeRemaining] = useState(30);
+      const [answeredLog, setAnsweredLog] = useState([]);
+      
+      // Animation / Status states
+      const [monsterMood, setMonsterMood] = useState("NORMAL");
+      const [flashWrong, setFlashWrong] = useState(false);
+      const [flashCorrect, setFlashCorrect] = useState(false);
+      const [activeFeedback, setActiveFeedback] = useState(null);
+      const [chosenAnswer, setChosenAnswer] = useState(null);
+      const [addedScore, setAddedScore] = useState(0);
+      const [latestCorrectAnswer, setLatestCorrectAnswer] = useState("");
+
+      // High score checker
+      useEffect(() => {
+        if (gameState === "GAMEOVER" || gameState === "CLEAR") {
+          document.body.style.overflow = "auto";
+          if (score > highScore && score > 0) {
+            setHighScore(score);
+            localStorage.setItem("INTEGRAL_RPG_HIGHSCORE", score.toString());
+            triggerAchievement("積分マスター (New High Score)");
+          }
+        } else {
+          document.body.style.overflow = "hidden";
+        }
+      }, [gameState, score, highScore]);
+
+      // Achievement Trigger
+      const triggerAchievement = (name) => {
+        if (!unlockedAchievements.includes(name)) {
+          const updated = [...unlockedAchievements, name];
+          setUnlockedAchievements(updated);
+          localStorage.setItem("INTEGRAL_RPG_ACHIEVEMENTS", JSON.stringify(updated));
+        }
+      };
+
+      // Initialize Game Logic based on mode
+      const startGame = (mode, practiceCat) => {
+        setGameMode(mode);
+        setHp(3);
+        setScore(0);
+        setCombo(0);
+        setAnsweredLog([]);
+        setMonsterMood("NORMAL");
+        setChosenAnswer(null);
+        setActiveFeedback(null);
+
+        const deck = [];
+        if (mode === "PRACTICE" && practiceCat) {
+          setPracCategory(practiceCat);
+          for (let i = 0; i < 10; i++) {
+            const isComp = practiceCat.id === "composite";
+            const randomType = getRandomElement(practiceCat.types);
+            deck.push(buildQuizItem(isComp, isComp ? null : randomType));
+          }
+        } else if (mode === "STORY") {
+          for (let i = 0; i < 10; i++) {
+            if (i === 9) {
+              deck.push(buildQuizItem(true));
+            } else {
+              const indexType = (i % 8) + 1; // 1 to 8 category
+              deck.push(buildQuizItem(false, indexType));
+            }
+          }
+        } else {
+          for (let i = 0; i < 50; i++) {
+            const isComp = Math.random() > 0.65;
+            deck.push(buildQuizItem(isComp));
+          }
+        }
+
+        setQuizzes(deck);
+        setCurrentIndex(0);
+        setGameState("PLAYING");
+        setTimeRemaining(30);
+      };
+
+      // Progress to next stage
+      const nextStage = () => {
+        setActiveFeedback(null);
+        setChosenAnswer(null);
+
+        if (gameMode === "INFINITE") {
+          setQuizzes(prev => [...prev, buildQuizItem(Math.random() > 0.65)]);
+          setCurrentIndex(prev => prev + 1);
+          setMonsterMood("NORMAL");
+          setTimeRemaining(30);
+        } else {
+          if (currentIndex + 1 === 10) {
+            setGameState("CLEAR");
+            setMonsterMood("NORMAL");
+            if (hp === 3) triggerAchievement("無傷 of 守護者 (Perfect Health Clear)");
+            if (score > 1500) triggerAchievement("アインシュタイン級 (High Score Pro)");
+          } else {
+            setCurrentIndex(prev => prev + 1);
+            setMonsterMood("NORMAL");
+            setTimeRemaining(30);
+          }
+        }
+      };
+
+      const handleIncorrect = useCallback((chosenVal) => {
+        setCombo(0);
+        const activeQuiz = quizzes[currentIndex];
+
+        const nextHp = hp - 1;
+        setHp(nextHp);
+        setAnsweredLog(prev => [...prev, { q: activeQuiz.q, correct: activeQuiz.cAns, user: chosenVal, explanation: activeQuiz.original.explanation }]);
+        setMonsterMood("ATTACK");
+        setActiveFeedback("INCORRECT");
+        setChosenAnswer(chosenVal);
+        setLatestCorrectAnswer(activeQuiz.cAns);
+        setFlashWrong(true);
+        setTimeout(() => setFlashWrong(false), 500);
+
+        setTimeout(() => {
+          if (nextHp <= 0) {
+            setGameState("GAMEOVER");
+            setMonsterMood("NORMAL");
+            setActiveFeedback(null);
+          } else {
+            nextStage();
+          }
+        }, 3800);
+      }, [hp, currentIndex, quizzes]);
+
+      const handleTimeout = useCallback(() => {
+        if (activeFeedback || gameState !== "PLAYING") return;
+        handleIncorrect("TIME UP");
+      }, [activeFeedback, gameState, handleIncorrect]);
+
+      // Player choice submit handler
+      const handleAnswerSubmit = (choice) => {
+        if (activeFeedback || gameState !== "PLAYING") return;
+        
+        const activeQuiz = quizzes[currentIndex];
+        setChosenAnswer(choice);
+
+        if (choice === activeQuiz.cAns) {
+          const timeBonus = Math.floor(timeRemaining * 10);
+          const levelMultiplier = 100 + (combo * 15);
+          const totalPoints = levelMultiplier + timeBonus;
+
+          setAddedScore(totalPoints);
+          setScore(prev => prev + totalPoints);
+          setCombo(prev => prev + 1);
+
+          setMonsterMood("HIT");
+          setActiveFeedback("CORRECT");
+          setFlashCorrect(true);
+          setTimeout(() => setFlashCorrect(false), 500);
+
+          if (combo + 1 >= 5) triggerAchievement("連撃 of 達人 (5 Combo Mastery)");
+
+          setTimeout(() => {
+            nextStage();
+          }, 2500);
+        } else {
+          handleIncorrect(choice);
+        }
+      };
+
+      // Dynamic Countdown Timer Hook
+      useEffect(() => {
+        if (gameState !== "PLAYING" || activeFeedback) return;
+        
+        let lastTime = performance.now();
+        const intervalId = setInterval(() => {
+          const now = performance.now();
+          const diff = (now - lastTime) / 1000;
+          lastTime = now;
+
+          setTimeRemaining(prev => {
+            if (prev - diff <= 0) {
+              setTimeout(handleTimeout, 0);
+              return 30;
+            }
+            return prev - diff;
+          });
+        }, 30);
+
+        return () => clearInterval(intervalId);
+      }, [gameState, activeFeedback, handleTimeout]);
+
+      const resolveMonsterType = () => {
+        if (gameMode === "PRACTICE") return pracCategory.bossType;
+        if (currentIndex === 9) return "chimera";
+        if (currentIndex >= 6) return "golem";
+        if (currentIndex >= 3) return "phantom";
+        if (currentIndex >= 1) return "triangle";
+        return "slime";
+      };
+
+      const getMonsterJpName = () => {
+        const type = resolveMonsterType();
+        switch (type) {
+          case "slime": return "冪泥インテグラン";
+          case "triangle": return "幾何魔獣サインホーン";
+          case "phantom": return "対数超霊オイラーゴースト";
+          case "golem": return "指数岩体エキスポノドン";
+          case "chimera": return "極点魔神リーマンキマイラ";
+        }
+      };
+
+      const isUnlocked = (achName) => {
+        return unlockedAchievements.some((unlocked) => unlocked.includes(achName));
+      };
+      const unlockedCount = ALL_ACHIEVEMENTS.filter(ach => isUnlocked(ach.name)).length;
+
+      return (
+        <div className="flex justify-center items-start min-h-screen bg-[#050505] text-white pt-2 pb-6 max-h-screen overflow-y-auto">
+          {/* Main viewport with scanlines retro theme overlay (scaled to match original viewport style) */}
+          <div 
+            id="game-viewport"
+            className="crt-screen relative flex flex-col w-full max-w-xl mx-auto p-2.5 sm:p-3 overflow-hidden bg-[#07070a] border border-[#1f2937] shadow-[0_0_40px_rgba(0,255,255,0.06)] transform scale-[0.95] origin-top"
+          >
+            {/* Visual Flash effect alerts */}
+            <div className={`absolute inset-0 z-[80] pointer-events-none transition-all duration-300 ${flashWrong ? "bg-red-800/80 saturate-150 animate-pulse" : ""} ${flashCorrect ? "bg-white/80 animate-ping" : ""}`} />
+
+            {/* Header */}
+            <header className="flex justify-between items-center bg-black/40 border-b border-cyan-500 pb-1 mb-1.5 select-none z-10">
+              <div className="flex items-center gap-1.5 text-cyan-400 font-bold">
+                <Gamepad2 className="w-5 h-5 text-cyan-400 animate-pulse" />
+                <span className="font-mono tracking-widest text-[#00ebc7] sm:text-base text-xs">積分バトルRPG</span>
+              </div>
+
+              <div className="flex items-center gap-4 text-xs sm:text-sm font-mono text-gray-400">
+                <div>
+                  HIGH: <span className="text-yellow-400 font-bold">{highScore}</span>
+                </div>
+                <div>
+                  STAGE: <span className="text-pink-400 font-bold">{gameMode === "STORY" || gameMode === "PRACTICE" ? `${currentIndex + 1}/10` : "∞"}</span>
+                </div>
+              </div>
+            </header>
+
+            {/* 1. START Titel Screen */}
+            {gameState === "START" && (
+              <div className="flex-1 flex flex-col justify-center items-center text-center space-y-2 z-20 py-2 relative">
+                <div className="relative mb-0.5 w-[140px] sm:w-[160px] h-[100px] sm:h-[120px] flex justify-center items-center">
+                  <div className="absolute inset-0 bg-[#00f2ff]/10 blur-xl rounded-full pointer-events-none" />
+                  <AdaptiveMonster type="slime" mood="NORMAL" gameState="START" />
+                </div>
+
+                <div className="space-y-0.5">
+                  <h1 className="text-xl sm:text-2xl font-black font-mono tracking-tight text-white mb-0.5 leading-none">
+                    INTEGRAL <br />
+                    <span className="bg-gradient-to-r from-cyan-400 via-pink-400 to-yellow-300 bg-clip-text text-transparent italic drop-shadow-[0_0_15px_rgba(255,0,255,0.5)]">BATTLE RPG</span>
+                  </h1>
+                  <p className="text-[10px] text-[#00ebc7] font-mono tracking-widest leading-none">
+                    正解の「不定積分」を選び、魔獣の数式を結界封印せよ。
+                  </p>
+                </div>
+
+                {/* Achievements List */}
+                <div className="w-full max-w-md bg-black/60 p-2 sm:p-2.5 border border-pink-500/30 rounded-lg text-left text-xs font-mono">
+                  <div className="flex justify-between items-center pb-1 border-b border-pink-500/20 mb-1.5">
+                    <div className="flex items-center gap-1.5 text-pink-400 font-bold">
+                      <Trophy className="w-3.5 h-3.5 text-yellow-400 animate-bounce" />
+                      <span>解放した数学・勲章 ({unlockedCount} / {ALL_ACHIEVEMENTS.length})</span>
+                    </div>
+                    {unlockedCount === ALL_ACHIEVEMENTS.length ? (
+                      <span className="text-[9px] bg-yellow-500 text-black px-1.5 py-0.2 rounded font-black animate-pulse">
+                        ★ 完全制覇 ★
+                      </span>
+                    ) : (
+                      <span className="text-[9px] text-gray-500">全実績解放を目指せ</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 text-[9.5px]">
+                    {ALL_ACHIEVEMENTS.map((ach, idx) => {
+                      const unlocked = isUnlocked(ach.name);
+                      return (
+                        <div 
+                          key={idx}
+                          className={`p-1.5 border rounded flex items-center gap-1.5 transition-all leading-normal ${
+                            unlocked 
+                              ? "bg-pink-950/40 border-pink-500/40 text-pink-200" 
+                              : "bg-gray-950/30 border-gray-800 text-gray-500"
+                          }`}
+                        >
+                          <span className={`text-sm shrink-0 select-none ${!unlocked && "grayscale opacity-40"}`}>
+                            {unlocked ? ach.icon : "🔒"}
+                          </span>
+                          <div className="leading-tight overflow-hidden text-left">
+                            <div className={`font-bold truncate ${unlocked ? "text-yellow-300" : "text-gray-500"}`}>
+                              {ach.name}
+                            </div>
+                            <div className="text-[8px] text-gray-400 truncate">
+                              {unlocked ? ach.desc : `ヒント: ${ach.hint}`}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 w-full max-w-xs pt-1">
+                  <button
+                    onClick={() => setGameState("MODE_SELECT")}
+                    className="group relative flex items-center justify-center gap-2 bg-gradient-to-r from-[#00ffff] to-[#2563eb] text-black font-extrabold text-sm py-1.5 rounded hover:from-white hover:to-cyan-200 transition-all duration-300 active:scale-95 shadow-[0_0_15px_rgba(0,255,255,0.3)] cursor-pointer"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>戦闘準備に入る</span>
+                    <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+
+                <div className="text-[9px] text-gray-500 font-mono italic">
+                  *完全にフロントエンド of ローカル数理生成システムで作動中 (No API-Key required)
+                </div>
+              </div>
+            )}
+
+            {/* 2. MODE SELECT SCREEN */}
+            {gameState === "MODE_SELECT" && (
+              <div className="flex-1 flex flex-col justify-center space-y-2 z-20 py-1">
+                <div className="text-center">
+                  <h2 className="text-lg sm:text-xl font-black text-[#00ebc7] tracking-wider font-mono flex items-center justify-center gap-1">
+                    <BookOpen className="w-4 h-4 text-cyan-400" />
+                    <span>戦闘モード選択 (CHOOSE SCENARIO)</span>
+                  </h2>
+                  <p className="text-[10px] text-gray-400 mt-0.5">
+                    あなたの目的に応じた積分トレーニングの試練を選択してください。
+                  </p>
+                </div>
+
+                <div className="grid gap-2 w-full">
+                  {/* Story mode */}
+                  <div 
+                    onClick={() => startGame("STORY")}
+                    className="p-2.5 bg-gradient-to-r from-cyan-950/70 via-black/40 to-black/40 border border-cyan-500/40 rounded-lg hover:border-cyan-400 hover:bg-cyan-950/10 cursor-pointer transition-all duration-200 group text-left"
+                  >
+                    <div className="flex flex-wrap justify-between items-center gap-1.5">
+                      <h3 className="font-mono font-black text-xs sm:text-sm text-cyan-400 flex items-center gap-1 group-hover:text-cyan-300">
+                        📖 クエスト試練 (STORY QUEST)
+                      </h3>
+                      <div className="flex gap-1 shrink-0">
+                        <span className="text-[8px] sm:text-[9px] bg-cyan-900 text-cyan-300 px-1.5 py-0.5 border border-cyan-400/30 font-bold rounded">初心者推奨</span>
+                        <span className="text-[8px] sm:text-[9px] bg-blue-950 text-blue-300 px-1.5 py-0.5 border border-blue-400/30 rounded">全10階層</span>
+                      </div>
+                    </div>
+                    <p className="text-[10.5px] text-gray-300 mt-0.5 font-sans leading-relaxed">
+                      難易度が自動でアップする王道クエスト：<strong>基本の冪関数（多項式）積分から極点の置換積分へとステップアップする全10ステージ。</strong>
+                    </p>
+                  </div>
+
+                  {/* Practice Select */}
+                  <div 
+                    onClick={() => setGameState("PRACTICE_SELECT")}
+                    className="p-2.5 bg-gradient-to-r from-purple-950/70 via-black/40 to-black/40 border border-purple-500/40 rounded-lg hover:border-purple-400 hover:bg-purple-950/10 cursor-pointer transition-all duration-200 group text-left"
+                  >
+                    <div className="flex flex-wrap justify-between items-center gap-1.5">
+                      <h3 className="font-mono font-black text-xs sm:text-sm text-purple-400 flex items-center gap-1 group-hover:text-purple-300">
+                        💡 単元苦手特訓 (WEAK-POINT PRACTICE)
+                      </h3>
+                      <div className="flex gap-1 shrink-0">
+                        <span className="text-[8px] sm:text-[9px] bg-purple-900 text-purple-300 px-1.5 py-0.5 border border-purple-400/30 font-bold rounded">苦手克服</span>
+                        <span className="text-[8px] sm:text-[9px] bg-pink-950 text-pink-300 px-1.5 py-0.5 border border-pink-400/30 rounded">特訓用</span>
+                      </div>
+                    </div>
+                    <p className="text-[10.5px] text-gray-300 mt-0.5 font-sans leading-relaxed">
+                      多項式、三角、指数対数、置換の4分野から、<strong>あなたが今復習したい独自の単元を選び、10問連続バトル</strong>で集中学習します。
+                    </p>
+                  </div>
+
+                  {/* Infiniteサバイバル */}
+                  <div 
+                    onClick={() => startGame("INFINITE")}
+                    className="p-2.5 bg-gradient-to-r from-pink-950/70 via-black/40 to-black/40 border border-pink-500/40 rounded-lg hover:border-pink-400 hover:bg-pink-950/10 cursor-pointer transition-all duration-200 group text-left"
+                  >
+                    <div className="flex flex-wrap justify-between items-center gap-1.5">
+                      <h3 className="font-mono font-black text-xs sm:text-sm text-pink-400 flex items-center gap-1 group-hover:text-pink-300">
+                        🔥 無限積分地獄 (DEATHMATCH INFINITY)
+                      </h3>
+                      <div className="flex gap-1 shrink-0">
+                        <span className="text-[8px] sm:text-[9px] bg-pink-900 text-pink-300 px-1.5 py-0.5 border border-pink-400/30 font-bold rounded">腕試し</span>
+                        <span className="text-[8px] sm:text-[9px] bg-red-950 text-red-300 px-1.5 py-0.5 border border-red-400/30 rounded">サバイバル</span>
+                      </div>
+                    </div>
+                    <p className="text-[10.5px] text-gray-300 mt-0.5 font-sans leading-relaxed">
+                      HPが尽きるまで、全範囲の積分問題が完全ランダムでノンストップ出現！<strong>時間制限の中での反射スピードと正確性を高める</strong>最高難度モード。
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-black/60 border border-gray-800 p-1.5 rounded text-[10px] text-gray-400 text-center flex items-center justify-center gap-1 leading-snug">
+                  <CheckCircle className="w-3.5 h-3.5 text-[#10b981] shrink-0" />
+                  <span>間違えた問題は「復習魔導書」として段階別解説が必ず記録され、あとから復習できます。</span>
+                </div>
+
+                <button
+                  onClick={() => setGameState("START")}
+                  className="border border-gray-700 py-1 hover:border-gray-500 rounded text-xs w-full text-gray-400 cursor-pointer text-center font-mono bg-black/40"
+                >
+                  ◀ タイトル画面へ戻る
+                </button>
+              </div>
+            )}
+
+            {/* 3. PRACTICE SELECT SCREEN */}
+            {gameState === "PRACTICE_SELECT" && (
+              <div className="flex-1 flex flex-col justify-center space-y-2 z-20 py-1 max-h-[85vh] overflow-y-auto">
+                <div className="text-center">
+                  <h2 className="text-base sm:text-lg font-black text-purple-400 tracking-wider font-mono flex items-center justify-center gap-1">
+                    <BookOpen className="w-4 h-4 text-purple-400" />
+                    <span>特訓単元選択 (PRACTICE TRIALS)</span>
+                  </h2>
+                  <p className="text-[10px] text-gray-400 mt-0.5">
+                    特訓したい特定の積分系統を選択してください。代表的な積分公式をその場で確認・予習できます。
+                  </p>
+                </div>
+
+                <div className="grid gap-1.5 select-none text-left">
+                  {PRACTICE_CATEGORIES.map((cat) => {
+                    let mathFormula = "";
+                    let detailsStr = "";
+                    if (cat.id === "poly") {
+                      mathFormula = "\\int x^n \\,dx = \\frac{1}{n+1} x^{n+1} + C";
+                      detailsStr = "多項式の展開や、分数形式、ルート（実数冪）の積分公式を反復練習します。";
+                    } else if (cat.id === "trig") {
+                      mathFormula = "\\int \\sin x \\,dx = -\\cos x + C";
+                      detailsStr = "sin, cos, tanの導関数と逆方向。微分側との符号の不一致（最も多い致命的な不一致）を見分けます。";
+                    } else if (cat.id === "exp") {
+                      mathFormula = "\\int e^x \\,dx = e^x \\quad \\int \\frac{1}{x} \\,dx = \\log|x|";
+                      detailsStr = "数III積分の中核。e^xの不変性や、1/xが自然対数になる仕組みを攻略します。";
+                    } else if (cat.id === "composite") {
+                      mathFormula = "\\int f(ax+b) \\,dx = \\frac{1}{a} F(ax+b) + C";
+                      detailsStr = "置換積分の超重要規則！一次式変数の中身の係数 a の逆数 1/a を忘れずに外側へ掛ける感覚を徹底習得。";
+                    }
+
+                    return (
+                      <div
+                        key={cat.id}
+                        onClick={() => startGame("PRACTICE", cat)}
+                        className={`p-2.5 rounded-lg cursor-pointer bg-gradient-to-r ${cat.color} bg-opacity-15 hover:bg-opacity-25 hover:border-[#00ebc7]/50 hover:scale-[1.01] transition-all duration-300 border border-gray-800 flex flex-col justify-between gap-1`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-0.5">
+                            <h3 className="font-mono font-black text-xs sm:text-sm text-white flex items-center gap-1">
+                              <span className="text-xs">🎯</span>
+                              <span>{cat.jpName}</span>
+                            </h3>
+                            <p className="text-[8px] text-gray-400 font-mono tracking-widest">{cat.name} Formulas</p>
+                          </div>
+                          <span className="text-[9px] bg-black/40 px-1.5 py-0.5 rounded border border-white/10 font-mono text-gray-300 uppercase">10 問勝負</span>
+                        </div>
+
+                        <div className="text-[9.5px] text-gray-300 font-sans leading-tight pl-3 border-l-2 border-white/10">
+                          {detailsStr}
+                        </div>
+
+                        {/* Formula Preview with MathJax */}
+                        <div className="mt-0.5 bg-black/50 p-1 rounded border border-white/5 flex items-center justify-center">
+                          <div className="scale-85 origin-center text-center text-[10px]">
+                            <MathJaxFormula math={mathFormula} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setGameState("MODE_SELECT")}
+                  className="border border-gray-700 py-1 hover:border-gray-500 rounded transition-colors text-xs w-full text-gray-300 cursor-pointer font-mono bg-black/40 text-center"
+                >
+                  ◀ 戻る (お好みの試練へ)
+                </button>
+              </div>
+            )}
+
+            {/* 4. ACTIVE COMBAT PLAYING STATE */}
+            {gameState === "PLAYING" && quizzes[currentIndex] && (
+              <div className="flex-1 flex flex-col justify-between space-y-2.5 z-20">
+                {/* Stats Panel */}
+                <div className="flex justify-between items-center gap-2 bg-black/60 p-2 sm:p-3 border border-gray-900 rounded-lg font-mono text-xs text-[#00ebc7]">
+                  <div className="flex items-center gap-1">
+                    <span>HP: </span>
+                    <span className="flex gap-0.5">
+                      {Array(3).fill(0).map((_, i) => (
+                        <Heart 
+                          key={i} 
+                          className={`w-4 h-4 ${i < hp ? "text-red-500 stroke-red-500 fill-red-500 animate-pulse" : "text-gray-800"}`} 
+                        />
+                      ))}
+                    </span>
+                  </div>
+
+                  <div>
+                    SCORE: <span className="text-green-400 font-bold">{score}</span>
+                  </div>
+                </div>
+
+                {/* Combant Arena Graphic Area */}
+                <div className="relative flex flex-col items-center justify-center bg-black/40 border-2 border-slate-800 p-1 rounded-lg overflow-hidden min-h-[145px] sm:min-h-[165px]">
+                  <div className="absolute top-2 left-2 text-[10px] text-gray-400 font-mono">
+                    STAGE {currentIndex + 1}/10
+                  </div>
+                  <div className="absolute top-2 right-2 text-[10px] text-[#00f2ff] font-mono tracking-widest animate-pulse">
+                    {getMonsterJpName()}
+                  </div>
+
+                  {/* Adaptive Monster Graphic with state animation key refreshers */}
+                  <div className="relative flex items-center justify-center w-full h-[115px] sm:h-[135px]">
+                    <AdaptiveMonster 
+                      type={resolveMonsterType()} 
+                      mood={monsterMood} 
+                      gameState="PLAYING"
+                    />
+
+                    {/* Slash damage visual effects over monster */}
+                    {activeFeedback === "CORRECT" && (
+                      <React.Fragment>
+                        <div key={currentIndex + "-slash1"} className="absolute h-3 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_#00f2ff] pointer-events-none z-20 -rotate-44 animate-slash-line-1" style={{ width: "240px" }} />
+                        <div key={currentIndex + "-slash2"} className="absolute h-3 bg-gradient-to-r from-transparent via-pink-400 to-transparent shadow-[0_0_15px_#ec4899] pointer-events-none z-20 rotate-44 animate-slash-line-1" style={{ width: "240px" }} />
+                        
+                        <div key={currentIndex + "-seal"} className="absolute w-36 h-36 border-2 border-[#00ebc7] rounded-full flex items-center justify-center border-dashed pointer-events-none z-20 animate-seal-rotation">
+                          <span className="text-2xl text-[#00ebc7] font-mono opacity-80">∫ dx</span>
+                        </div>
+
+                        {/* Floating damage text popup */}
+                        <div key={currentIndex + "-dmgText"} className="absolute font-mono font-black text-sm md:text-base text-yellow-300 drop-shadow-[0_2px_8px_rgba(0,0,0,1)] text-center pointer-events-none select-none z-30 animate-dmg-float-text">
+                          <div className="text-[10px] text-pink-400 tracking-widest leading-none">封印成功 (SEAL COMPLETE)</div>
+                          <div className="text-yellow-400 font-extrabold tracking-tight mt-1">-{addedScore} HP / WRONG INTEGRAL DESTROYED!</div>
+                        </div>
+                      </React.Fragment>
+                    )}
+
+                    {activeFeedback === "INCORRECT" && (
+                      <React.Fragment>
+                        <div key={currentIndex + "-impact"} className="absolute inset-0 bg-red-600/30 player-events-none z-10 rounded-lg animate-pulse" />
+                        <div key={currentIndex + "-critText"} className="absolute font-mono font-black text-center pointer-events-none select-none z-30 animate-crit-dmg-text">
+                          <div className="text-xl font-black text-red-500 drop-shadow-[0_2px_6px_rgba(0,0,0,1)]">💥 CRITICAL DAMAGE!</div>
+                          <div className="text-xs text-red-300 drop-shadow-[0_1px_3px_rgba(0,0,0,1)] mt-1">結界決壊 / HP -1</div>
+                        </div>
+                      </React.Fragment>
+                    )}
+                  </div>
+
+                  <div className="h-6 flex items-center justify-center font-mono">
+                    {combo > 0 && (
+                      <div className="text-[#00ebc7] text-xs font-bold tracking-widest animate-bounce">
+                        💥 {combo} COMBO BOOST! ({100 + (combo * 15)}% PTS)
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Hourglass Timer Slider */}
+                <div className="space-y-1 font-mono">
+                  <div className="flex justify-between items-end text-[10px] sm:text-xs">
+                    <span className={`${timeRemaining <= 5 ? "text-red-500 animate-pulse font-bold" : "text-cyan-400"}`}>
+                      TIME: {timeRemaining.toFixed(2)}s
+                    </span>
+                    <span className="text-gray-400 text-[10px]">{quizzes[currentIndex].original.category}</span>
+                  </div>
+                  <div className="w-full bg-gray-950 h-2.5 border border-cyan-500/30 overflow-hidden">
+                    <div 
+                      className={`h-full transition-all ease-linear ${timeRemaining <= 5 ? "bg-red-500 animate-pulse" : "bg-gradient-to-r from-cyan-400 to-blue-500"}`}
+                      style={{ width: `${(timeRemaining / 30) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Formulas Box */}
+                <div className="bg-black/90 border-2 border-cyan-500/60 p-2 sm:p-2.5 font-mono text-center flex flex-col items-center justify-center min-h-[65px] relative rounded shadow-[0_0_15px_rgba(0,255,255,0.1)]">
+                  <span className="absolute top-1 left-1.5 text-[9px] text-cyan-400/80">不定積分を求めよ:</span>
+                  <MathJaxFormula math={quizzes[currentIndex].q} />
+                </div>
+
+                {/* Choice Panels Grid */}
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                  {quizzes[currentIndex].choices.map((choice, idx) => {
+                    let btnStyle = "bg-[#0b0c10] border-2 border-pink-500 p-2 text-center text-xs sm:text-sm lg:text-base font-bold whitespace-nowrap overflow-x-auto hover:border-white transition-all duration-150 py-1.5 text-white rounded cursor-pointer";
+
+                    if (chosenAnswer) {
+                      if (choice === quizzes[currentIndex].cAns) {
+                        btnStyle = "bg-green-950/80 border-2 border-[#10b981] text-green-300 font-bold p-2 text-center text-xs sm:text-sm lg:text-base whitespace-nowrap overflow-x-auto shadow-[0_0_15px_#10b981] py-1.5 rounded";
+                      } else if (choice === chosenAnswer) {
+                        btnStyle = "bg-red-950/80 border-2 border-red-500 text-red-300 font-bold p-2 text-center text-xs sm:text-sm lg:text-base whitespace-nowrap overflow-x-auto opacity-80 py-1.5 rounded";
+                      } else {
+                        btnStyle = "bg-black/40 border-2 border-gray-800 text-gray-600 p-2 text-center text-xs sm:text-sm lg:text-base whitespace-nowrap overflow-x-auto opacity-30 py-1.5 rounded";
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleAnswerSubmit(choice)}
+                        disabled={chosenAnswer !== null}
+                        className={btnStyle}
+                      >
+                        <MathJaxFormula math={choice} />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* GRIMOIRE DICTIONARY / GUIDELINES WALKTROUGH - SHOW ON ACTIONS */}
+                {activeFeedback && (
+                  <div 
+                    className={`p-3 border leading-snug text-xs sm:text-sm rounded font-sans transition-all duration-300 ${
+                      activeFeedback === "CORRECT" 
+                        ? "bg-green-950/60 border-green-500/50 text-green-200" 
+                        : "bg-red-950/80 border-red-500/50 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse"
+                    }`}
+                  >
+                    {activeFeedback === "CORRECT" ? (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-400 shrink-0" />
+                        <div>
+                          <span className="font-bold text-[#10b981]">正解！</span> 
+                          {addedScore && `+ ${addedScore} PTSを獲得しました。`}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-2 border-b border-red-500/20 pb-2">
+                          <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold text-red-400">MISS! 誤った積分結界を構築してしまった！</span>
+                            <div className="mt-1 flex flex-wrap items-center gap-1 font-mono text-xs text-gray-300">
+                              <span>解きたかった問題: </span>
+                              <span className="bg-black/50 px-2 py-0.5 rounded border border-gray-800 inline-block">
+                                <MathJaxFormula math={quizzes[currentIndex].q} />
+                              </span>
+                            </div>
+                            <div className="mt-1 flex flex-wrap items-center gap-1 font-mono text-xs text-green-400">
+                              <span>✓ 正しい結界公式: </span>
+                              <span className="bg-black/50 px-2 py-0.5 rounded border border-green-950 inline-block font-bold">
+                                <MathJaxFormula math={latestCorrectAnswer} />
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* MathJax explanation note from Grimoire */}
+                        <div className="bg-black/60 p-2 border-l-2 border-yellow-500 text-gray-300 select-text overflow-x-auto leading-relaxed">
+                          <div className="flex items-center gap-1 text-[11px] text-yellow-400 font-bold mb-1 font-mono">
+                            <BookOpen className="w-3.5 h-3.5" />
+                            <span>魔導書の解説（復習ノート）:</span>
+                          </div>
+                          <div className="text-xs text-gray-200">
+                            <MathJaxExplanation text={quizzes[currentIndex].original.explanation} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 5. GAME STORY CLEAR SCREEN */}
+            {gameState === "CLEAR" && (
+              <div className="flex-1 flex flex-col justify-start items-center text-center space-y-1.5 z-20 py-1 max-h-[85vh] overflow-y-auto pointer-events-auto">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-[#10b981]/15 blur-2xl rounded-full pointer-events-none" />
+                  <AdaptiveMonster 
+                    type={resolveMonsterType()} 
+                    mood="NORMAL" 
+                    gameState="CLEAR" 
+                    ansWrongLength={answeredLog.length} 
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <h2 className="text-3xl sm:text-4xl font-black italic tracking-widest text-[#10b981] select-none uppercase drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]">
+                    STAGE CLEAR!!
+                  </h2>
+                  <p className="text-[11px] sm:text-xs text-cyan-400 tracking-wider">
+                    見事、全ての不定積分を封じモンスターを撃破しました！
+                  </p>
+                </div>
+
+                <div className="w-full max-w-sm bg-black/80 border-2 border-[#10b981] p-3 text-center rounded shadow-[0_0_20px_rgba(16,185,129,0.15)] font-mono">
+                  <div className="text-[10px] text-gray-400">FINAL RESULT</div>
+                  <div className="text-2xl font-black text-yellow-300 mt-0.5">{score} <span className="text-xs text-gray-300">PTS</span></div>
+                  
+                  <div className="grid grid-cols-1 gap-1.5 text-center text-[10px] text-gray-300 border-t border-gray-900 mt-2 pt-2">
+                    <div>戦闘モード: <span className="text-purple-300 font-bold">{gameMode}</span></div>
+                  </div>
+                </div>
+
+                {/* Complete History Grimoire Lists */}
+                <div className="w-full bg-black/90 p-2.5 border-2 border-pink-500 rounded font-sans text-xs shadow-[inset_0_0_15px_#f0f] text-left">
+                  <h3 className="text-pink-500 text-center mb-1.5 font-mono font-bold tracking-widest border-b border-pink-500/20 pb-1 flex items-center justify-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>-- 積分ミス復習魔導書 --</span>
+                  </h3>
+                  
+                  {answeredLog.length === 0 ? (
+                    <div className="text-center text-[#10b981] py-2 font-bold space-y-0.5">
+                      <div>🎯 PERFECT VICTORY!</div>
+                      <div className="text-[11px] text-gray-400 font-normal">本日の積分ミス： 0 問。完璧な結界戦闘術でした！</div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3.5 max-h-44 overflow-y-auto pr-1">
+                      {answeredLog.map((log, idx) => (
+                        <div key={idx} className="border-b border-gray-800 pb-2 last:border-none last:pb-0 font-sans space-y-1">
+                          <div className="font-mono text-cyan-400 whitespace-nowrap overflow-x-auto p-1 bg-white/5 rounded border border-gray-900 font-bold">
+                            Q: <MathJaxFormula math={log.q} />
+                          </div>
+                          <div className="text-red-400 pl-1 flex items-center overflow-x-auto">
+                            <span>× あなたの解答: </span>
+                            <span className="font-mono ml-1 inline-block"><MathJaxFormula math={log.user === "TIME UP" ? "時間切れ" : log.user} /></span>
+                          </div>
+                          <div className="text-[#10b981] pl-1 flex items-center overflow-x-auto font-bold">
+                            <span>◯ 公式の正解: </span>
+                            <span className="font-mono ml-1 inline-block"><MathJaxFormula math={log.correct} /></span>
+                          </div>
+                          <div className="bg-black/50 p-1.5 border-l-2 border-yellow-500 text-[11px] text-gray-300 leading-normal mt-1 leading-snug">
+                            <span className="text-yellow-400 font-bold block mb-0.5">↳ 復習の急所:</span>
+                            <MathJaxExplanation text={log.explanation} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-4 w-full pt-1">
+                  <button
+                    onClick={() => {
+                      setGameState("MODE_SELECT");
+                      setMonsterMood("NORMAL");
+                      setActiveFeedback(null);
+                    }}
+                    className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded transition-all shadow-[0_0_15px_rgba(0,255,255,0.2)] cursor-pointer"
+                  >
+                    ホームメニューへ
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 6. GAME OVER VIEW */}
+            {gameState === "GAMEOVER" && (
+              <div className="flex-1 flex flex-col justify-start items-center text-center space-y-1.5 z-20 py-1 max-h-[85vh] overflow-y-auto pointer-events-auto">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-red-900/15 blur-2xl rounded-full pointer-events-none" />
+                  <AdaptiveMonster 
+                    type={resolveMonsterType()} 
+                    mood="NORMAL" 
+                    gameState="GAMEOVER" 
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <h2 className="text-3xl sm:text-4xl font-extrabold italic tracking-widest text-red-500 select-none uppercase drop-shadow-[0_0_8px_rgba(220,38,38,0.3)]">
+                    GAME OVER
+                  </h2>
+                  <p className="text-[11px] sm:text-xs text-gray-400">
+                    HPがゼロになりました！ 積分結界が崩壊し魔獣が暴走しています。
+                  </p>
+                </div>
+
+                <div className="w-full max-w-sm bg-black/80 border-2 border-red-500 p-3 rounded shadow-[0_0_15px_rgba(220,38,38,0.15)] font-mono">
+                  <div className="text-[10px] text-gray-400">FINAL RESULT</div>
+                  <div className="text-2xl font-black text-yellow-300 mt-0.5">{score} <span className="text-xs text-gray-300">PTS</span></div>
+                  
+                  <div className="grid grid-cols-1 gap-1.5 text-center text-[10px] text-gray-300 border-t border-gray-900 mt-2 pt-2">
+                    <div>到達ステージ: <span className="text-pink-300 font-bold">{currentIndex + 1}ステージ</span></div>
+                  </div>
+                </div>
+
+                {/* Analysis of Game Over mistakes */}
+                {answeredLog.length > 0 && (
+                  <div className="w-full bg-black/90 p-2.5 border-2 border-pink-500 rounded font-sans text-xs shadow-[inset_0_0_15px_#f0f] text-left">
+                    <h3 className="text-pink-500 text-center mb-1.5 font-mono font-bold tracking-widest border-b border-pink-500/20 pb-1 flex items-center justify-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>-- 敗因分析＆復習ノート --</span>
+                    </h3>
+                    <div className="space-y-3.5 max-h-44 overflow-y-auto pr-1">
+                      {answeredLog.map((log, idx) => (
+                        <div key={idx} className="border-b border-gray-800 pb-2 last:border-none last:pb-0 font-sans space-y-1">
+                          <div className="font-mono text-cyan-400 whitespace-nowrap overflow-x-auto p-1 bg-white/5 rounded border border-gray-900 font-bold">
+                            Q: <MathJaxFormula math={log.q} />
+                          </div>
+                          <div className="text-red-400 pl-1 flex items-center overflow-x-auto">
+                            <span>× あなたの解答: </span>
+                            <span className="font-mono ml-1 inline-block"><MathJaxFormula math={log.user === "TIME UP" ? "時間切れ" : log.user} /></span>
+                          </div>
+                          <div className="text-[#10b981] pl-1 flex items-center overflow-x-auto font-bold">
+                            <span>◯ 正しい公式: </span>
+                            <span className="font-mono ml-1 inline-block"><MathJaxFormula math={log.correct} /></span>
+                          </div>
+                          <div className="bg-black/50 p-1.5 border-l-2 border-yellow-500 text-[11px] text-gray-300 leading-normal mt-1 leading-snug">
+                            <span className="text-yellow-400 font-bold block mb-0.5">↳ 復習の急所:</span>
+                            <MathJaxExplanation text={log.explanation} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-4 w-full pt-1">
+                  <button
+                    onClick={() => {
+                      setGameState("MODE_SELECT");
+                      setMonsterMood("NORMAL");
+                      setActiveFeedback(null);
+                    }}
+                    className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded transition-all cursor-pointer"
+                  >
+                    ホームメニューへ戻る
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
+  </script>
+</body>
+</html>
