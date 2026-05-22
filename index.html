@@ -100,23 +100,23 @@
     }
   </style>
 </head>
-<body class="bg-[#050505] text-white selection:bg-cyan-500/30 min-h-screen flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+<body class="bg-[#050505] text-white selection:bg-cyan-500/30 min-h-screen flex items-start justify-center p-1 sm:p-2 overflow-y-auto">
 
   <!-- Main Game Card Frame (CRT Retro Look) -->
-  <div id="game-viewport" class="relative flex flex-col w-full max-w-md mx-auto p-4 sm:p-5 overflow-hidden bg-[#07070a] border border-[#1f2937] shadow-[0_0_50px_rgba(0,242,255,0.06)] rounded-2xl font-mono select-none">
+  <div id="game-viewport" class="relative flex flex-col w-full max-w-md mx-auto p-2.5 sm:p-3 overflow-hidden bg-[#07070a] border border-[#1f2937] shadow-[0_0_40px_rgba(0,255,255,0.06)] rounded-xl font-mono select-none transform scale-[0.95] origin-top">
     
     <!-- CRT scanning effect overlay -->
     <div class="absolute inset-0 pointer-events-none z-[90] scanlines opacity-90"></div>
 
     <!-- Header Panel -->
-    <header class="flex justify-between items-center bg-black/40 border-b border-cyan-500 pb-2 mb-3 select-none z-10">
+    <header class="flex justify-between items-center bg-black/40 border-b border-cyan-500 pb-1 mb-1.5 select-none z-10">
       <div class="flex items-center gap-1.5 text-cyan-400 font-bold">
         <i data-lucide="gamepad-2" class="w-4 h-4 text-cyan-400 animate-pulse"></i>
-        <span class="tracking-widest text-[#00ebc7] text-sm sm:text-base font-mono font-bold">積分バトルRPG</span>
+        <span class="tracking-widest text-[#00ebc7] text-xs sm:text-sm font-mono font-bold">積分バトルRPG</span>
       </div>
       
       <!-- High Score tracker -->
-      <div class="flex items-center gap-3 text-xs">
+      <div class="flex items-center gap-3 text-[10px] sm:text-xs">
         <div class="flex items-center gap-1">
           <i data-lucide="trophy" class="w-3.5 h-3.5 text-yellow-400"></i>
           <span class="text-gray-400">HIGH:</span>
@@ -126,10 +126,10 @@
     </header>
 
     <!-- ==================== 1. START SCREEN ==================== -->
-    <div id="screen-start" class="flex-1 flex flex-col justify-center items-center text-center space-y-4 z-20 py-2">
-      <div class="relative w-[150px] h-[110px] flex justify-center items-center">
+    <div id="screen-start" class="flex-1 flex flex-col justify-center items-center text-center space-y-1.5 z-20 py-1">
+      <div class="relative w-[135px] h-[100px] flex justify-center items-center">
         <div class="absolute inset-0 bg-[#00ffff]/10 blur-xl rounded-full pointer-events-none"></div>
-        <div id="start-monster-container" class="animate-breathing">
+        <div id="start-monster-container" class="animate-breathing scale-[0.95]">
           <!-- Static representation or fallback -->
         </div>
       </div>
@@ -145,43 +145,43 @@
       </div>
 
       <!-- Static Achievements Panel -->
-      <div class="w-full bg-black/60 p-2.5 border border-pink-500/30 rounded-xl text-left text-xs">
-        <div class="flex justify-between items-center pb-1.5 border-b border-pink-500/20 mb-2 font-bold">
-          <div class="flex items-center gap-1.5 text-pink-400">
-            <i data-lucide="award" class="w-4 h-4 text-pink-400"></i>
-            <span>解放した数学・勲章 (<span id="achievement-unlocked-count">0</span> / 4)</span>
+      <div class="w-full bg-black/60 p-2 border border-pink-500/30 rounded-lg text-left text-xs font-mono">
+        <div class="flex justify-between items-center pb-1 border-b border-pink-500/20 mb-1.5 font-bold">
+          <div class="flex items-center gap-1 text-pink-400 text-[11px] sm:text-xs">
+            <i data-lucide="award" class="w-3.5 h-3.5 text-yellow-400"></i>
+            <span>解放勲章数: <span id="achievement-unlocked-count" class="text-yellow-400 font-extrabold">0</span> / 4</span>
           </div>
-          <span id="achievement-complete-seal" class="text-[9px] bg-yellow-500 text-black px-1.5 rounded font-black hidden">完全制覇</span>
+          <span id="achievement-complete-seal" class="text-[8.5px] bg-[#eab308] text-black px-1.5 py-0.2 rounded font-black tracking-widest hidden animate-pulse">★ 完全制覇 ★</span>
         </div>
         
-        <div class="grid grid-cols-2 gap-2 text-[9.5px]">
+        <div class="grid grid-cols-2 gap-1 text-[9px]">
           <!-- Achievement Slots -->
-          <div id="ach-slot-0" class="p-1.5 border border-gray-800 rounded flex items-center gap-1.5 text-gray-500 bg-gray-950/30 transition-all">
-            <span class="text-sm select-none" id="ach-icon-0">🔒</span>
-            <div class="leading-tight overflow-hidden text-left">
-              <div class="font-bold truncate text-gray-500" id="ach-title-0">積分マスター</div>
-              <div class="text-[8px] text-gray-400 truncate">ハイスコア更新</div>
+          <div id="ach-slot-0" class="p-1.5 border border-neutral-800 rounded flex items-center gap-1.5 text-neutral-500 bg-neutral-900/60 opacity-60 transition-all duration-300">
+            <span class="text-[13px] select-none opacity-35" id="ach-icon-0">🔒</span>
+            <div class="leading-tight overflow-hidden text-left flex-1 min-w-0">
+              <div class="font-bold truncate text-[9.5px] text-neutral-500" id="ach-title-0">積分マスター</div>
+              <div class="text-[8px] truncate pt-0.5" id="ach-desc-0">ヒント: ハイスコアを更新せよ</div>
             </div>
           </div>
-          <div id="ach-slot-1" class="p-1.5 border border-gray-800 rounded flex items-center gap-1.5 text-gray-500 bg-gray-950/30 transition-all">
-            <span class="text-sm select-none" id="ach-icon-1">🔒</span>
-            <div class="leading-tight overflow-hidden text-left">
-              <div class="font-bold truncate text-gray-500" id="ach-title-1">無傷の守護者</div>
-              <div class="text-[8px] text-gray-400 truncate">HP3で物語クリア</div>
+          <div id="ach-slot-1" class="p-1.5 border border-neutral-800 rounded flex items-center gap-1.5 text-neutral-500 bg-neutral-900/60 opacity-60 transition-all duration-300">
+            <span class="text-[13px] select-none opacity-35" id="ach-icon-1">🔒</span>
+            <div class="leading-tight overflow-hidden text-left flex-1 min-w-0">
+              <div class="font-bold truncate text-[9.5px] text-neutral-500" id="ach-title-1">無傷の守護者</div>
+              <div class="text-[8px] truncate pt-0.5" id="ach-desc-1">ヒント: HP3で物語クリア</div>
             </div>
           </div>
-          <div id="ach-slot-2" class="p-1.5 border border-gray-800 rounded flex items-center gap-1.5 text-gray-500 bg-gray-950/30 transition-all">
-            <span class="text-sm select-none" id="ach-icon-2">🔒</span>
-            <div class="leading-tight overflow-hidden text-left">
-              <div class="font-bold truncate text-gray-500" id="ach-title-2">アインシュタイン級</div>
-              <div class="text-[8px] text-gray-400 truncate">1500点以上でクリア</div>
+          <div id="ach-slot-2" class="p-1.5 border border-neutral-800 rounded flex items-center gap-1.5 text-neutral-500 bg-neutral-900/60 opacity-60 transition-all duration-300">
+            <span class="text-[13px] select-none opacity-35" id="ach-icon-2">🔒</span>
+            <div class="leading-tight overflow-hidden text-left flex-1 min-w-0">
+              <div class="font-bold truncate text-[9.5px] text-neutral-500" id="ach-title-2">アインシュタイン級</div>
+              <div class="text-[8px] truncate pt-0.5" id="ach-desc-2">ヒント: 1500点以上でクリア</div>
             </div>
           </div>
-          <div id="ach-slot-3" class="p-1.5 border border-gray-800 rounded flex items-center gap-1.5 text-gray-500 bg-gray-950/30 transition-all">
-            <span class="text-sm select-none" id="ach-icon-3">🔒</span>
-            <div class="leading-tight overflow-hidden text-left">
-              <div class="font-bold truncate text-gray-500" id="ach-title-3">連撃の達人</div>
-              <div class="text-[8px] text-gray-400 truncate">5回連続正解</div>
+          <div id="ach-slot-3" class="p-1.5 border border-neutral-800 rounded flex items-center gap-1.5 text-neutral-500 bg-neutral-900/60 opacity-60 transition-all duration-300">
+            <span class="text-[13px] select-none opacity-35" id="ach-icon-3">🔒</span>
+            <div class="leading-tight overflow-hidden text-left flex-1 min-w-0">
+              <div class="font-bold truncate text-[9.5px] text-neutral-500" id="ach-title-3">連撃の達人</div>
+              <div class="text-[8px] truncate pt-0.5" id="ach-desc-3">ヒント: 5回連続正解</div>
             </div>
           </div>
         </div>
@@ -366,11 +366,27 @@
           --
         </div>
 
-        <!-- Monster Canvas Wrapper -->
-        <div id="playing-monster-wrapper" class="relative flex items-center justify-center w-full h-[115px] sm:h-[135px]">
-          <!-- Monster SVG/IMG injection zone -->
-          <div id="playing-monster-render" class="absolute inset-0 flex items-center justify-center pointer-events-none scale-[0.95] origin-center">
-            <!-- Rendered dynamically -->
+        <!-- Monster Canvas Wrapper (VS mode split layout) -->
+        <div id="playing-monster-wrapper" class="relative flex items-center justify-around w-full h-[115px] sm:h-[135px] px-2 sm:px-6">
+          <!-- Left: Player status and avatar -->
+          <div class="flex flex-col items-center justify-center z-10">
+            <span class="text-[9px] text-[#00ebc7] font-mono tracking-wider mb-0.5">勇者 TOMO</span>
+            <div id="playing-player-render" class="pointer-events-none origin-center scale-[0.95]">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- VS Marker -->
+          <div class="flex flex-col items-center justify-center shrink-0 z-10 px-1">
+            <span class="text-pink-500 font-mono font-black italic text-[11px] sm:text-xs tracking-tighter animate-pulse opacity-85">VS</span>
+          </div>
+
+          <!-- Right: Stage Monster -->
+          <div class="flex flex-col items-center justify-center z-10">
+            <span id="playing-monster-render-title" class="text-[9px] text-pink-400 font-mono tracking-wider mb-0.5">--</span>
+            <div id="playing-monster-render" class="pointer-events-none origin-center">
+              <!-- Rendered dynamically -->
+            </div>
           </div>
 
           <!-- Dynamic slash overlay effect -->
@@ -436,8 +452,8 @@
     <div id="screen-clear" class="flex-1 flex flex-col justify-start items-center text-center space-y-2 z-20 py-1 max-h-[85vh] overflow-y-auto hidden">
       <div class="relative">
         <div class="absolute inset-0 bg-[#10b981]/15 blur-2xl rounded-full pointer-events-none"></div>
-        <div id="clear-monster-render" class="origin-center scale-[0.95]">
-          <!-- Defeated monster rendered here -->
+        <div id="clear-player-render" class="origin-center scale-[0.95]">
+          <!-- Player Win graphic rendered here -->
         </div>
       </div>
 
@@ -480,8 +496,8 @@
     <div id="screen-gameover" class="flex-1 flex flex-col justify-start items-center text-center space-y-2 z-20 py-1 max-h-[85vh] overflow-y-auto hidden">
       <div class="relative">
         <div class="absolute inset-0 bg-red-900/15 blur-2xl rounded-full pointer-events-none"></div>
-        <div id="gameover-monster-render" class="origin-center scale-[0.85]">
-          <!-- Golem/Defeat graphic rendered here -->
+        <div id="gameover-player-render" class="origin-center scale-[0.85]">
+          <!-- Player Death graphic rendered here -->
         </div>
       </div>
 
@@ -538,6 +554,7 @@
       timeRemaining: 30,
       answeredLog: [],
       monsterMood: "NORMAL",
+      playerMood: "NORMAL",
       activeFeedback: null, // "CORRECT" or "INCORRECT"
       chosenAnswer: null,
       addedScore: 0,
@@ -984,8 +1001,17 @@
       return { q: qText, cAns: cAnsStr, choices: shuffledChoices, original: parts[0] };
     }
 
-    // Adaptively load monster images from GitHub, with fully functional SVG backup
-    const Qo = {
+    // Custom Asset Maps for Monster and Hero
+    const MONSTER_ASSET_PREFIX = {
+      slime: "aaa",
+      triangle: "aab",
+      phantom: "aac",
+      golem: "aad",
+      chimera: "aae",
+      practice: "aaa"
+    };
+
+    const PLAYER_ASSET = {
       NORMAL: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag0.png",
       HIT: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag2.png",
       ATTACK: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag1.png",
@@ -1100,23 +1126,26 @@
       const type = resolveMonsterType();
       const mood = state.monsterMood;
       const s = state.gameState;
-      const ansWrongLen = state.answeredLog.length;
 
       let imgSrc = "";
-      if (s === "GAMEOVER") {
-        imgSrc = Qo.DEFEAT;
-      } else if (s === "CLEAR") {
-        imgSrc = ansWrongLen === 0 ? Qo.WIN_PERFECT : Qo.WIN_MISS;
-      } else if (["START", "MODE_SELECT", "PRACTICE_SELECT"].includes(s)) {
-        imgSrc = Qo.NORMAL;
+      const prefix = MONSTER_ASSET_PREFIX[type] || "aaa";
+
+      if (s === "CLEAR") {
+        imgSrc = `https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/${prefix}3.png`;
       } else {
-        imgSrc = mood === "HIT" ? Qo.HIT : mood === "ATTACK" ? Qo.ATTACK : Qo.NORMAL;
+        if (mood === "HIT") {
+          imgSrc = `https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/${prefix}2.png`;
+        } else if (mood === "ATTACK") {
+          imgSrc = `https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/${prefix}1.png`;
+        } else {
+          imgSrc = `https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/${prefix}0.png`;
+        }
       }
 
       // Check height responsive constraints
       const heightClass = ["CLEAR", "GAMEOVER"].includes(s)
         ? "max-h-[140px] sm:max-h-[180px]"
-        : s === "START" ? "max-h-[110px] sm:max-h-[140px]" : "max-h-[95px] sm:max-h-[125px]";
+        : s === "START" ? "max-h-[110px] sm:max-h-[140px]" : "max-h-[85px] sm:max-h-[105px]";
 
       const shakeAnimateClass = s === "PLAYING" && mood === "HIT" ? "animate-shake-hit" : s === "PLAYING" && mood === "ATTACK" ? "animate-attack-strike" : "animate-breathing";
 
@@ -1129,6 +1158,50 @@
         imgEl.onerror = () => {
           // Failure or blocked access triggers standard vector representation 100% locally
           container.innerHTML = generateNeonSVG(type, mood, s);
+        };
+      }
+    }
+
+    function renderPlayer(targetId) {
+      const container = document.getElementById(targetId);
+      if (!container) return;
+
+      const mood = state.playerMood || "NORMAL";
+      const s = state.gameState;
+      const ansWrongLen = state.answeredLog.filter(l => !l.correct).length;
+
+      let imgSrc = PLAYER_ASSET.NORMAL;
+      if (s === "GAMEOVER") {
+        imgSrc = PLAYER_ASSET.DEFEAT;
+      } else if (s === "CLEAR") {
+        imgSrc = ansWrongLen === 0 ? PLAYER_ASSET.WIN_PERFECT : PLAYER_ASSET.WIN_MISS;
+      } else if (s === "PLAYING") {
+        if (mood === "HIT") {
+          imgSrc = PLAYER_ASSET.HIT;
+        } else if (mood === "ATTACK") {
+          imgSrc = PLAYER_ASSET.ATTACK;
+        }
+      }
+
+      const heightClass = ["CLEAR", "GAMEOVER"].includes(s)
+        ? "max-h-[140px] sm:max-h-[180px]"
+        : "max-h-[85px] sm:max-h-[105px]";
+
+      const shakeAnimateClass = s === "PLAYING" && mood === "HIT" ? "animate-shake-hit" : s === "PLAYING" && mood === "ATTACK" ? "animate-attack-strike" : "animate-breathing";
+
+      container.innerHTML = `
+        <img src="${imgSrc}" id="img-player-asset-${targetId}" class="object-contain select-none pointer-events-none transition-all duration-200 ${heightClass} ${shakeAnimateClass}" />
+      `;
+
+      const imgEl = document.getElementById(`img-player-asset-${targetId}`);
+      if (imgEl) {
+        imgEl.onerror = () => {
+          container.innerHTML = `
+            <div class="w-[80px] h-[80px] flex flex-col items-center justify-center border border-dashed border-cyan-500/40 rounded bg-cyan-950/20">
+              <span class="text-xl">🧙‍♂️</span>
+              <span class="text-[9px] text-cyan-400 font-mono font-bold tracking-widest mt-1">HERO</span>
+            </div>
+          `;
         };
       }
     }
@@ -1187,14 +1260,14 @@
         document.getElementById("screen-playing").classList.remove("hidden");
       } else if (targetScreen === "CLEAR") {
         document.getElementById("screen-clear").classList.remove("hidden");
-        renderMonster("clear-monster-render");
+        renderPlayer("clear-player-render");
         renderMistakeReviews("clear-review-list");
         document.getElementById("clear-score").innerText = state.score;
         document.getElementById("clear-game-mode").innerText = state.gameMode;
         setTimeout(() => { if (window.MathJax) window.MathJax.typesetPromise(); }, 50);
       } else if (targetScreen === "GAMEOVER") {
         document.getElementById("screen-gameover").classList.remove("hidden");
-        renderMonster("gameover-monster-render");
+        renderPlayer("gameover-player-render");
         renderMistakeReviews("gameover-review-list");
         document.getElementById("gameover-score").innerText = state.score;
         document.getElementById("gameover-reached-stage").innerText = (state.currentIndex + 1) + " ステージ";
@@ -1213,6 +1286,7 @@
       state.combo = 0;
       state.answeredLog = [];
       state.monsterMood = "NORMAL";
+      state.playerMood = "NORMAL";
       state.chosenAnswer = null;
       state.activeFeedback = null;
 
@@ -1255,6 +1329,7 @@
       state.combo = 0;
       state.answeredLog = [];
       state.monsterMood = "NORMAL";
+      state.playerMood = "NORMAL";
       state.chosenAnswer = null;
       state.activeFeedback = null;
 
@@ -1280,17 +1355,22 @@
       state.chosenAnswer = null;
       state.activeFeedback = null;
       state.monsterMood = "NORMAL";
+      state.playerMood = "NORMAL";
       state.timeRemaining = 30.00;
 
       // Update HUDs
       document.getElementById("playing-score").innerText = state.score;
       document.getElementById("playing-stage-index").innerText = state.currentIndex + 1;
       document.getElementById("playing-monster-title").innerText = getMonsterJpName();
+      if (document.getElementById("playing-monster-render-title")) {
+        document.getElementById("playing-monster-render-title").innerText = getMonsterJpName();
+      }
       document.getElementById("playing-category-badge").innerText = state.quizzes[state.currentIndex].original.category;
       document.getElementById("active-commentary-box").classList.add("hidden");
 
       renderHearts();
       renderMonster("playing-monster-render");
+      renderPlayer("playing-player-render");
 
       // Math Formula insertion
       const container = document.getElementById("math-question-container");
@@ -1425,6 +1505,7 @@
 
       if (isCorrect) {
         state.monsterMood = "HIT";
+        state.playerMood = "ATTACK";
         state.combo++;
         
         // Combo multiplier points
@@ -1435,6 +1516,7 @@
         state.activeFeedback = "CORRECT";
 
         renderMonster("playing-monster-render");
+        renderPlayer("playing-player-render");
         showSlashVisual();
         showPopup("DAMAGE", basePoints);
 
@@ -1458,12 +1540,14 @@
       } else {
         // INCORRECT
         state.monsterMood = "ATTACK";
+        state.playerMood = "HIT";
         state.combo = 0;
         state.hp--;
         state.activeFeedback = "INCORRECT";
 
         document.getElementById("playing-combo").classList.add("hidden");
         renderMonster("playing-monster-render");
+        renderPlayer("playing-player-render");
         showPopup("HIT");
         renderHearts();
 
@@ -1519,10 +1603,12 @@
       state.combo = 0;
       state.hp--;
       state.monsterMood = "ATTACK";
+      state.playerMood = "HIT";
       state.activeFeedback = "INCORRECT";
 
       document.getElementById("playing-combo").classList.add("hidden");
       renderMonster("playing-monster-render");
+      renderPlayer("playing-player-render");
       showPopup("HIT");
       renderHearts();
 
@@ -1657,19 +1743,52 @@
         "連撃の達人 (5 Combo Mastery)"
       ];
 
+      const icons = ["🏆", "💎", "🎓", "⚡"];
+      const descs = [
+        "不滅のハイスコアを記録",
+        "HP3で物語をクリアした",
+        "1500点以上の高みへ到達",
+        "5戦闘連続での正解を記録"
+      ];
+      const hints = [
+        "ヒント: ハイスコアを更新せよ",
+        "ヒント: HP3で物語クリア",
+        "ヒント: 1500点以上でクリア",
+        "ヒント: 5回連続正解"
+      ];
+
       keys.forEach((key, idx) => {
         const slot = document.getElementById(`ach-slot-${idx}`);
         const icon = document.getElementById(`ach-icon-${idx}`);
         const title = document.getElementById(`ach-title-${idx}`);
+        const desc = document.getElementById(`ach-desc-${idx}`);
 
         if (state.unlockedAchievements.includes(key)) {
-          slot.className = "p-1.5 border border-yellow-500/40 rounded flex items-center gap-1.5 text-yellow-300 bg-yellow-950/20";
-          icon.innerHTML = ["🏆", "💎", "🎓", "⚡"][idx];
-          title.className = "font-bold truncate text-yellow-200 animate-pulse";
+          slot.className = "p-1.5 border border-yellow-500/80 rounded flex items-center gap-1.5 text-yellow-101 bg-gradient-to-r from-yellow-950/25 via-yellow-905/10 to-transparent hover:scale-[1.01] transition-all duration-300 opacity-100";
+          if (icon) {
+            icon.innerHTML = icons[idx];
+            icon.className = "text-[13px] select-none filter drop-shadow-[0_0_4px_rgba(234,179,8,0.5)] animate-bounce shrink-0";
+          }
+          if (title) {
+            title.className = "font-bold truncate text-[9.5px] text-yellow-450 border-b border-yellow-500/15 pb-0.5";
+          }
+          if (desc) {
+            desc.innerText = descs[idx];
+            desc.className = "text-[8px] truncate pt-0.5 text-gray-300 font-medium";
+          }
         } else {
-          slot.className = "p-1.5 border border-gray-800 rounded flex items-center gap-1.5 text-gray-500 bg-gray-950/30";
-          icon.innerHTML = "🔒";
-          title.className = "font-bold truncate text-gray-500";
+          slot.className = "p-1.5 border border-neutral-800 rounded flex items-center gap-1.5 text-neutral-500 bg-neutral-900/60 opacity-60 transition-all duration-300";
+          if (icon) {
+            icon.innerHTML = "🔒";
+            icon.className = "text-[13px] select-none opacity-35 shrink-0";
+          }
+          if (title) {
+            title.className = "font-bold truncate text-[9.5px] text-neutral-500";
+          }
+          if (desc) {
+            desc.innerText = hints[idx];
+            desc.className = "text-[8px] truncate pt-0.5 text-neutral-500 font-light";
+          }
         }
       });
 
