@@ -346,7 +346,7 @@
       <!-- Active Top Status Header -->
       <div class="flex justify-between items-center gap-2 bg-black/60 p-2 sm:p-3 border border-gray-900 rounded-lg text-xs text-[#00ebc7] font-mono">
         <div class="flex items-center gap-1.5">
-          <span class="text-gray-400">结界耐久HP:</span>
+          <span class="text-gray-400">結界耐久HP:</span>
           <div id="hp-hearts-container" class="flex gap-0.5 text-rose-500 font-bold text-sm">
             <!-- Hearts rendered dynamically -->
           </div>
@@ -366,24 +366,10 @@
           --
         </div>
 
-        <!-- Monster Canvas Wrapper (VS mode split layout) -->
-        <div id="playing-monster-wrapper" class="relative flex items-center justify-around w-full h-[115px] sm:h-[135px] px-2 sm:px-6">
-          <!-- Left: Player status and avatar -->
-          <div class="flex flex-col items-center justify-center z-10">
-            <span class="text-[9px] text-[#00ebc7] font-mono tracking-wider mb-0.5">勇者 TOMO</span>
-            <div id="playing-player-render" class="pointer-events-none origin-center scale-[0.95]">
-              <!-- Rendered dynamically -->
-            </div>
-          </div>
-
-          <!-- VS Marker -->
-          <div class="flex flex-col items-center justify-center shrink-0 z-10 px-1">
-            <span class="text-pink-500 font-mono font-black italic text-[11px] sm:text-xs tracking-tighter animate-pulse opacity-85">VS</span>
-          </div>
-
-          <!-- Right: Stage Monster -->
-          <div class="flex flex-col items-center justify-center z-10">
-            <span id="playing-monster-render-title" class="text-[9px] text-pink-400 font-mono tracking-wider mb-0.5">--</span>
+        <!-- Monster Canvas Wrapper (Centered single avatar layout) -->
+        <div id="playing-monster-wrapper" class="relative flex flex-col items-center justify-center w-full h-[115px] sm:h-[135px]">
+          <!-- Centered Stage Monster -->
+          <div class="flex flex-col items-center justify-center z-10 w-full">
             <div id="playing-monster-render" class="pointer-events-none origin-center">
               <!-- Rendered dynamically -->
             </div>
@@ -1124,21 +1110,20 @@
       if (!container) return;
 
       const type = resolveMonsterType();
-      const mood = state.monsterMood;
+      const mood = state.monsterMood || "NORMAL";
       const s = state.gameState;
+      const ansWrongLen = state.answeredLog.filter(l => !l.correct).length;
 
-      let imgSrc = "";
-      const prefix = MONSTER_ASSET_PREFIX[type] || "aaa";
-
-      if (s === "CLEAR") {
-        imgSrc = `https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/${prefix}3.png`;
-      } else {
+      let imgSrc = PLAYER_ASSET.NORMAL;
+      if (s === "GAMEOVER") {
+        imgSrc = PLAYER_ASSET.DEFEAT;
+      } else if (s === "CLEAR") {
+        imgSrc = ansWrongLen === 0 ? PLAYER_ASSET.WIN_PERFECT : PLAYER_ASSET.WIN_MISS;
+      } else if (s === "PLAYING") {
         if (mood === "HIT") {
-          imgSrc = `https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/${prefix}2.png`;
+          imgSrc = PLAYER_ASSET.HIT;
         } else if (mood === "ATTACK") {
-          imgSrc = `https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/${prefix}1.png`;
-        } else {
-          imgSrc = `https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/${prefix}0.png`;
+          imgSrc = PLAYER_ASSET.ATTACK;
         }
       }
 
@@ -1260,14 +1245,14 @@
         document.getElementById("screen-playing").classList.remove("hidden");
       } else if (targetScreen === "CLEAR") {
         document.getElementById("screen-clear").classList.remove("hidden");
-        renderPlayer("clear-player-render");
+        renderMonster("clear-player-render");
         renderMistakeReviews("clear-review-list");
         document.getElementById("clear-score").innerText = state.score;
         document.getElementById("clear-game-mode").innerText = state.gameMode;
         setTimeout(() => { if (window.MathJax) window.MathJax.typesetPromise(); }, 50);
       } else if (targetScreen === "GAMEOVER") {
         document.getElementById("screen-gameover").classList.remove("hidden");
-        renderPlayer("gameover-player-render");
+        renderMonster("gameover-player-render");
         renderMistakeReviews("gameover-review-list");
         document.getElementById("gameover-score").innerText = state.score;
         document.getElementById("gameover-reached-stage").innerText = (state.currentIndex + 1) + " ステージ";
@@ -1362,15 +1347,11 @@
       document.getElementById("playing-score").innerText = state.score;
       document.getElementById("playing-stage-index").innerText = state.currentIndex + 1;
       document.getElementById("playing-monster-title").innerText = getMonsterJpName();
-      if (document.getElementById("playing-monster-render-title")) {
-        document.getElementById("playing-monster-render-title").innerText = getMonsterJpName();
-      }
       document.getElementById("playing-category-badge").innerText = state.quizzes[state.currentIndex].original.category;
       document.getElementById("active-commentary-box").classList.add("hidden");
 
       renderHearts();
       renderMonster("playing-monster-render");
-      renderPlayer("playing-player-render");
 
       // Math Formula insertion
       const container = document.getElementById("math-question-container");
@@ -1516,7 +1497,6 @@
         state.activeFeedback = "CORRECT";
 
         renderMonster("playing-monster-render");
-        renderPlayer("playing-player-render");
         showSlashVisual();
         showPopup("DAMAGE", basePoints);
 
@@ -1547,7 +1527,6 @@
 
         document.getElementById("playing-combo").classList.add("hidden");
         renderMonster("playing-monster-render");
-        renderPlayer("playing-player-render");
         showPopup("HIT");
         renderHearts();
 
@@ -1608,7 +1587,6 @@
 
       document.getElementById("playing-combo").classList.add("hidden");
       renderMonster("playing-monster-render");
-      renderPlayer("playing-player-render");
       showPopup("HIT");
       renderHearts();
 
