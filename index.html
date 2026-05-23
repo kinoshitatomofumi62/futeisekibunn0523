@@ -999,8 +999,8 @@
 
     const PLAYER_ASSET = {
       NORMAL: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag0.png",
-      HIT: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag2.png",
-      ATTACK: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag1.png",
+      HIT: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag1.png",
+      ATTACK: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag2.png",
       DEFEAT: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag3.png",
       WIN_MISS: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag4.png",
       WIN_PERFECT: "https://cdn.jsdelivr.net/gh/kinoshitatomofumi62/my-assets@main/aag5.png"
@@ -1234,7 +1234,9 @@
       // Show targeted screen
       if (targetScreen === "START") {
         document.getElementById("screen-start").classList.remove("hidden");
-        document.getElementById("start-monster-container").innerHTML = generateNeonSVG("practice", "NORMAL", "START");
+        document.getElementById("start-monster-container").innerHTML = `
+          <img src="${PLAYER_ASSET.NORMAL}" class="object-contain select-none pointer-events-none w-auto max-h-[120px] sm:max-h-[160px] animate-breathing" />
+        `;
         updateStartBadgePanel();
       } else if (targetScreen === "MODE_SELECT") {
         document.getElementById("screen-mode").classList.remove("hidden");
